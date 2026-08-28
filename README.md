@@ -34,5 +34,5 @@ serverless (`/api/valoracion`) con la clave en una variable de entorno.
 
 ## Origen
 
-Código original creado por Silvia Beltrán (marzo 2026). Recuperado y
+Código original creado por Adriana Puertas (marzo 2026). Recuperado y
 consolidado en este repositorio.

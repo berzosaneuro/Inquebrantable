@@ -1,4 +1,4 @@
-const CACHE = 'inquebratable-v1';
+const CACHE = 'inquebrantable-v1';
 const ASSETS = [
   '/',
   '/index.html',
