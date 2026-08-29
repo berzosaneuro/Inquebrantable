@@ -19,47 +19,74 @@ type Post = {
 }
 type Comment = { id: number; author: string; body: string; created_at: string; isMine: boolean }
 
-const REACTIONS = [
-  { k: 'acompano', label: '🫂 Te acompaño' },
-  { k: 'entiendo', label: '❤️ Te entiendo' },
-  { k: 'yo_tambien', label: '🌱 Yo también' },
-  { k: 'gracias', label: '💜 Gracias por contarlo' },
-]
-
 function ago(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000
   if (s < 60) return 'ahora'
   if (s < 3600) return `hace ${Math.floor(s / 60)} min`
   if (s < 86400) return `hace ${Math.floor(s / 3600)} h`
+  if (s < 172800) return 'ayer'
   return new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
 }
+const initials = (n: string) => n.slice(0, 2).toUpperCase()
+
+const Heart = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+    <path d="M12 20s-7-4.3-7-9.5A4.3 4.3 0 0 1 12 7a4.3 4.3 0 0 1 7 3.5C19 15.7 12 20 12 20z" strokeLinejoin="round" />
+  </svg>
+)
+const Bubble = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+    <path d="M5 18v-1L4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H8z" strokeLinejoin="round" />
+  </svg>
+)
+const Save = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6">
+    <path d="M7 4h10v16l-5-3.5L7 20z" strokeLinejoin="round" />
+  </svg>
+)
 
 export default function RefugioPage() {
   const { user, loading } = useSession()
   const [circles, setCircles] = useState<Circle[]>([])
-  const [circle, setCircle] = useState('general')
-
-  useEffect(() => {
-    const c = new URLSearchParams(window.location.search).get('circle')
-    if (c) setCircle(c)
-  }, [])
+  const [circle, setCircle] = useState<string | null>(null)
+  const [subtab, setSubtab] = useState<'ti' | 'nuevas' | 'circulos' | 'siguiendo'>('ti')
   const [posts, setPosts] = useState<Post[]>([])
+  const [dq, setDq] = useState<string | null>(null)
   const [busy, setBusy] = useState(true)
   const [body, setBody] = useState('')
   const [anon, setAnon] = useState(false)
   const [msg, setMsg] = useState('')
+  const [composing, setComposing] = useState(false)
   const [openPost, setOpenPost] = useState<number | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
   const [commentBody, setCommentBody] = useState('')
 
+  useEffect(() => {
+    const c = new URLSearchParams(window.location.search).get('circle')
+    if (c) {
+      setCircle(c)
+      setSubtab('circulos')
+    }
+  }, [])
+
   const load = useCallback(async () => {
     setBusy(true)
-    const res = await fetch(`/api/refugio?circle=${encodeURIComponent(circle)}`, { cache: 'no-store' })
-    const j = await res.json()
-    setCircles(j.circles ?? [])
-    setPosts(j.posts ?? [])
+    const q = circle ? `?circle=${encodeURIComponent(circle)}` : ''
+    const [feed, preg] = await Promise.all([
+      fetch(`/api/refugio${q}`, { cache: 'no-store' }).then((r) => r.json()),
+      fetch('/api/pregunta', { cache: 'no-store' }).then((r) => r.json()).catch(() => ({})),
+    ])
+    setCircles(feed.circles ?? [])
+    let list: Post[] = feed.posts ?? []
+    if (subtab === 'nuevas') list = [...list]
+    if (subtab === 'ti') list = [...list].sort((a, b) => {
+      const rc = (p: Post) => Object.values(p.reactions).reduce((x, y) => x + y, 0) + p.comments
+      return rc(b) - rc(a)
+    })
+    setPosts(list)
+    setDq(preg?.question?.question ?? null)
     setBusy(false)
-  }, [circle])
+  }, [circle, subtab])
 
   useEffect(() => {
     load()
@@ -71,19 +98,18 @@ export default function RefugioPage() {
     const res = await fetch('/api/refugio', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ circle, body, anonymous: anon }),
+      body: JSON.stringify({ circle: circle || 'general', body, anonymous: anon }),
     })
     const j = await res.json()
     if (j.ok) {
       setBody('')
+      setComposing(false)
       load()
-    } else {
-      setMsg(j.error || 'No se pudo publicar.')
-    }
+    } else setMsg(j.error || 'No se pudo publicar.')
   }
 
-  async function react(postId: number, kind: string) {
-    await fetch(`/api/refugio/${postId}/react`, {
+  async function react(id: number, kind: string) {
+    await fetch(`/api/refugio/${id}/react`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ kind }),
@@ -94,19 +120,17 @@ export default function RefugioPage() {
   async function openThread(id: number) {
     setOpenPost(id)
     setComments([])
-    const res = await fetch(`/api/refugio/${id}`, { cache: 'no-store' })
-    const j = await res.json()
+    const j = await fetch(`/api/refugio/${id}`, { cache: 'no-store' }).then((r) => r.json())
     if (j.ok) setComments(j.comments)
   }
 
   async function sendComment() {
     if (!commentBody.trim() || openPost == null) return
-    const res = await fetch(`/api/refugio/${openPost}/comment`, {
+    const j = await fetch(`/api/refugio/${openPost}/comment`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ body: commentBody, anonymous: anon }),
-    })
-    const j = await res.json()
+    }).then((r) => r.json())
     if (j.ok) {
       setCommentBody('')
       openThread(openPost)
@@ -123,207 +147,218 @@ export default function RefugioPage() {
     })
     alert('Gracias. Lo revisaremos.')
   }
-
-  async function block(postId: number) {
+  async function block(id: number) {
     if (!confirm('¿Dejar de ver las publicaciones de esta persona?')) return
     await fetch('/api/refugio/block', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ postId }),
+      body: JSON.stringify({ postId: id }),
     })
     load()
   }
-
-  async function del(postId: number) {
+  async function del(id: number) {
     if (!confirm('¿Eliminar tu publicación?')) return
-    await fetch(`/api/refugio/${postId}`, { method: 'DELETE' })
+    await fetch(`/api/refugio/${id}`, { method: 'DELETE' })
     load()
   }
 
   if (!loading && !user) {
     return (
       <>
-        <p className="eyebrow">El Refugio</p>
-        <h1>Un lugar donde te leen otras mujeres</h1>
+        <div className="plat-head">
+          <div className="h-title">
+            <h1>Refugio</h1>
+            <p className="sub">Tu lugar seguro.</p>
+          </div>
+        </div>
         <p className="lede">
-          Aquí puedes contar lo que llevas dentro, con tu nombre o de forma anónima. Para
-          participar necesitas una cuenta.
+          Aquí puedes contar lo que llevas dentro, con tu nombre o de forma anónima, y leer
+          a otras mujeres. Necesitas una cuenta para participar.
         </p>
-        <Link href="/clasica#menu" className="plat-btn" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
+        <Link href="/clasica#menu" className="btn block">
           Crear cuenta / entrar
         </Link>
       </>
     )
   }
 
-  const activeCircle = circles.find((c) => c.slug === circle)
-
   return (
     <>
-      <p className="eyebrow">El Refugio</p>
-      <h1>{activeCircle?.name || 'Comunidad'}</h1>
-      {activeCircle?.description && <p className="lede">{activeCircle.description}</p>}
+      <div className="plat-head">
+        <div className="h-title">
+          <h1>Refugio</h1>
+          <p className="sub">Tu lugar seguro.</p>
+        </div>
+        <button className="h-icon" onClick={() => setComposing(true)} aria-label="Publicar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+            <path d="M12 5v14M5 12h14" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
 
-      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 0 14px', margin: 0 }}>
-        {circles.map((c) => (
-          <button
-            key={c.slug}
-            onClick={() => setCircle(c.slug)}
-            className="plat-opt"
-            style={{
-              flex: 'none',
-              padding: '6px 12px',
-              fontSize: 12,
-              borderColor: c.slug === circle ? 'var(--rose)' : 'var(--border)',
-              background: c.slug === circle ? 'rgba(224,80,138,0.12)' : 'var(--card2)',
-            }}
-          >
-            {c.name}
+      {dq && (
+        <div className="card navy">
+          <p className="c-label">Pregunta del día</p>
+          <p className="c-title" style={{ fontSize: '1.35rem' }}>{dq}</p>
+          <Link href="/pregunta" style={{ color: 'var(--rose)', fontSize: 13, display: 'inline-block', marginTop: 12 }}>
+            Responder →
+          </Link>
+        </div>
+      )}
+
+      <div className="subtabs">
+        {([
+          ['ti', 'Para ti'],
+          ['nuevas', 'Nuevas'],
+          ['circulos', 'Círculos'],
+          ['siguiendo', 'Siguiendo'],
+        ] as const).map(([k, l]) => (
+          <button key={k} className={subtab === k ? 'on' : ''} onClick={() => setSubtab(k)}>
+            {l}
           </button>
         ))}
       </div>
 
-      <div className="plat-card">
-        <textarea
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          rows={3}
-          placeholder="¿Qué necesitas contar hoy?"
-          style={{
-            width: '100%',
-            background: 'var(--card2)',
-            border: '1px solid var(--border)',
-            borderRadius: 12,
-            color: 'var(--cream)',
-            padding: '10px 12px',
-            fontFamily: 'inherit',
-            fontSize: 15,
-            resize: 'vertical',
-          }}
-        />
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--sand)', margin: '10px 0' }}>
-          <input type="checkbox" checked={anon} onChange={(e) => setAnon(e.target.checked)} />
-          Publicar como anónima
-        </label>
-        <button className="plat-btn" onClick={publish} disabled={!body.trim()}>
-          Compartir
-        </button>
-        {msg && <p className="plat-msg err">{msg}</p>}
-      </div>
+      {subtab === 'circulos' && (
+        <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 12 }}>
+          <button
+            className="subtabs"
+            style={{ padding: '6px 12px', borderRadius: 999, border: '1px solid var(--line-2)', background: circle ? 'transparent' : 'var(--paper)', fontSize: 12, flex: 'none' }}
+            onClick={() => setCircle(null)}
+          >
+            Todos
+          </button>
+          {circles.map((c) => (
+            <button
+              key={c.slug}
+              onClick={() => setCircle(c.slug)}
+              style={{
+                flex: 'none', padding: '6px 12px', borderRadius: 999, fontSize: 12, cursor: 'pointer',
+                border: `1px solid ${c.slug === circle ? 'var(--rose)' : 'var(--line-2)'}`,
+                background: c.slug === circle ? 'var(--rose-tint)' : 'transparent',
+                color: 'var(--ink-soft)', fontFamily: 'var(--sans)',
+              }}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {(composing || subtab === 'siguiendo') && (
+        <div className="card">
+          <textarea
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            rows={3}
+            placeholder="¿Qué necesitas contar hoy?"
+            style={{ width: '100%', background: 'var(--paper-2)', border: '1px solid var(--line)', borderRadius: 12, color: 'var(--ink)', padding: '10px 12px', fontFamily: 'var(--sans)', fontSize: 15, resize: 'vertical' }}
+          />
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, color: 'var(--ink-soft)', margin: '10px 0' }}>
+            <input type="checkbox" checked={anon} onChange={(e) => setAnon(e.target.checked)} />
+            Publicar como anónima
+          </label>
+          <button className="btn block" onClick={publish} disabled={!body.trim()}>
+            Compartir
+          </button>
+          {msg && <p className="plat-msg err">{msg}</p>}
+        </div>
+      )}
 
       {busy && <p className="plat-empty">Cargando…</p>}
       {!busy && posts.length === 0 && (
         <p className="plat-empty">Todavía no hay nada aquí. Puedes ser la primera.</p>
       )}
 
-      {posts.map((p) => (
-        <div className="plat-card" key={p.id}>
-          <p style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, color: 'var(--muted)', margin: '0 0 8px' }}>
-            <span>{p.author} · {ago(p.created_at)}</span>
-            <span>
-              {p.isMine ? (
-                <button onClick={() => del(p.id)} style={ghostBtn}>Eliminar</button>
-              ) : (
-                <>
-                  <button onClick={() => report('post', p.id)} style={ghostBtn}>Denunciar</button>{' '}
-                  <button onClick={() => block(p.id)} style={ghostBtn}>Bloquear</button>
-                </>
-              )}
-            </span>
-          </p>
-          <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{p.body}</p>
-
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', margin: '12px 0 4px' }}>
-            {REACTIONS.map((r) => {
-              const on = p.myReactions.includes(r.k)
-              const n = p.reactions[r.k] || 0
-              return (
-                <button
-                  key={r.k}
-                  onClick={() => react(p.id, r.k)}
-                  style={{
-                    fontFamily: 'inherit',
-                    cursor: 'pointer',
-                    fontSize: 12,
-                    padding: '5px 10px',
-                    borderRadius: 999,
-                    border: `1px solid ${on ? 'var(--rose)' : 'var(--border)'}`,
-                    background: on ? 'rgba(224,80,138,0.14)' : 'transparent',
-                    color: on ? 'var(--cream)' : 'var(--sand)',
-                  }}
-                >
-                  {r.label}
-                  {n > 0 && ` ${n}`}
-                </button>
-              )
-            })}
-          </div>
-
-          <button
-            onClick={() => (openPost === p.id ? setOpenPost(null) : openThread(p.id))}
-            style={{ ...ghostBtn, fontSize: 13, marginTop: 6 }}
-          >
-            {p.comments > 0 ? `${p.comments} respuesta${p.comments > 1 ? 's' : ''}` : 'Responder'}
-          </button>
-
-          {openPost === p.id && (
-            <div style={{ marginTop: 12, borderTop: '1px solid var(--border)', paddingTop: 12 }}>
-              {comments.map((c) => (
-                <div key={c.id} style={{ margin: '8px 0' }}>
-                  <p style={{ fontSize: 11, color: 'var(--muted)', margin: '0 0 2px' }}>
-                    {c.author} · {ago(c.created_at)}
-                    {!c.isMine && (
-                      <button onClick={() => report('comment', c.id)} style={{ ...ghostBtn, marginLeft: 8 }}>
-                        Denunciar
-                      </button>
-                    )}
-                  </p>
-                  <p style={{ margin: 0, fontSize: 14, whiteSpace: 'pre-wrap' }}>{c.body}</p>
-                </div>
-              ))}
-              <textarea
-                value={commentBody}
-                onChange={(e) => setCommentBody(e.target.value)}
-                rows={2}
-                placeholder="Escribe algo con cuidado…"
-                style={{
-                  width: '100%',
-                  background: 'var(--card2)',
-                  border: '1px solid var(--border)',
-                  borderRadius: 10,
-                  color: 'var(--cream)',
-                  padding: '8px 10px',
-                  fontFamily: 'inherit',
-                  fontSize: 14,
-                  marginTop: 8,
-                }}
-              />
-              <button className="plat-btn" style={{ marginTop: 8 }} onClick={sendComment} disabled={!commentBody.trim()}>
-                Responder
+      {posts.map((p) => {
+        const likes = p.reactions.entiendo || p.reactions.acompano || 0
+        const liked = p.myReactions.length > 0
+        return (
+          <div className="post" key={p.id}>
+            <div className="post-head">
+              <span className="post-av">{initials(p.author)}</span>
+              <span className="post-who">
+                <span className="n">{p.author}</span>
+                <span className="m">
+                  {ago(p.created_at)}
+                  {p.is_anonymous && ' · Anónimo'}
+                </span>
+              </span>
+              <button
+                className="post-menu"
+                onClick={() => (p.isMine ? del(p.id) : report('post', p.id))}
+                aria-label="Opciones"
+              >
+                ⋯
               </button>
             </div>
-          )}
-        </div>
-      ))}
+            <p className="post-body">{p.body}</p>
+            {p.circle_slug !== 'general' && (
+              <span className="post-tag">
+                {circles.find((c) => c.slug === p.circle_slug)?.name || p.circle_slug}
+              </span>
+            )}
+            <div className="post-actions">
+              <button className={liked ? 'on' : ''} onClick={() => react(p.id, 'entiendo')}>
+                <Heart /> {likes || ''}
+              </button>
+              <button onClick={() => (openPost === p.id ? setOpenPost(null) : openThread(p.id))}>
+                <Bubble /> {p.comments || ''}
+              </button>
+              {!p.isMine && (
+                <button onClick={() => block(p.id)} style={{ fontSize: 11 }}>
+                  Bloquear
+                </button>
+              )}
+              <button className="save" aria-label="Guardar">
+                <Save />
+              </button>
+            </div>
+
+            {openPost === p.id && (
+              <div style={{ marginTop: 12, borderTop: '1px solid var(--line)', paddingTop: 12 }}>
+                {comments.map((c) => (
+                  <div key={c.id} style={{ margin: '8px 0' }}>
+                    <p style={{ fontSize: 11, color: 'var(--ink-mute)', margin: '0 0 2px' }}>
+                      {c.author} · {ago(c.created_at)}
+                      {!c.isMine && (
+                        <button onClick={() => report('comment', c.id)} style={{ marginLeft: 8, background: 'none', border: 'none', color: 'var(--ink-mute)', fontSize: 11, cursor: 'pointer' }}>
+                          Denunciar
+                        </button>
+                      )}
+                    </p>
+                    <p style={{ margin: 0, fontSize: 14, whiteSpace: 'pre-wrap', color: 'var(--ink)' }}>{c.body}</p>
+                  </div>
+                ))}
+                <textarea
+                  value={commentBody}
+                  onChange={(e) => setCommentBody(e.target.value)}
+                  rows={2}
+                  placeholder="Escribe algo con cuidado…"
+                  style={{ width: '100%', background: 'var(--paper-2)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--ink)', padding: '8px 10px', fontFamily: 'var(--sans)', fontSize: 14, marginTop: 8 }}
+                />
+                <button className="btn block" style={{ marginTop: 8 }} onClick={sendComment} disabled={!commentBody.trim()}>
+                  Responder
+                </button>
+              </div>
+            )}
+          </div>
+        )
+      })}
+
+      <div className="card" style={{ marginTop: 20 }}>
+        <p className="c-label">Grupos y círculos</p>
+        <p className="c-title" style={{ fontSize: '1.3rem' }}>Encuentra tu tribu.</p>
+        <Link href="/circulos" style={{ color: 'var(--rose-deep)', fontSize: 13, display: 'inline-block', marginTop: 10 }}>
+          Explorar →
+        </Link>
+      </div>
 
       <p className="plat-disclaimer">
-        El Refugio es un espacio de apoyo entre iguales, no de consejo profesional. Si hay
-        riesgo para ti o para alguien, mira{' '}
-        <Link href="/recursos" style={{ color: 'var(--rose)' }}>
-          Recursos de ayuda
-        </Link>
-        .
+        El Refugio es apoyo entre iguales, no consejo profesional. Si hay riesgo para ti o
+        para alguien, mira{' '}
+        <Link href="/recursos" style={{ color: 'var(--rose-deep)' }}>Recursos de ayuda</Link>.
       </p>
     </>
   )
-}
-
-const ghostBtn: React.CSSProperties = {
-  background: 'none',
-  border: 'none',
-  color: 'var(--muted)',
-  cursor: 'pointer',
-  fontSize: 12,
-  fontFamily: 'inherit',
-  padding: 0,
 }

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import Script from 'next/script'
 import './globals.css'
+import AppNav from './AppNav'
 
 export const metadata: Metadata = {
   title: 'Inquebrantable — Un espacio para volver a encontrarte',
@@ -32,6 +33,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="es">
       <body>
         {children}
+        <AppNav />
         <Script id="sw-register" strategy="afterInteractive">
           {`if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {

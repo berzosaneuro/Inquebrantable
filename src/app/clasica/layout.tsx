@@ -1,7 +1,6 @@
 import Script from 'next/script'
+import '../legacy.css'
 
-// La app clásica (13 pantallas, JS vanilla) vive aquí. Los scripts solo se
-// cargan en esta rama, no en el resto de la plataforma.
 export default function ClasicaLayout({ children }: { children: React.ReactNode }) {
   return (
     <>

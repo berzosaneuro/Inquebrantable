@@ -41,7 +41,7 @@ export default async function ClasicaPage() {
         // eslint-disable-next-line react/no-danger
         dangerouslySetInnerHTML={{ __html: JSON.stringify(boot) }}
       />
-      <div id="legacy-root" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
+      <div id="legacy-root" className="legacy-page" dangerouslySetInnerHTML={{ __html: bodyHtml }} />
     </>
   )
 }
