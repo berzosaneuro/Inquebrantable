@@ -1,0 +1,183 @@
+/* Plataforma INQUEBRANTABLE — pantallas nuevas (HOY, evaluación, mapa, diario…).
+   Reutiliza los tokens de globals.css (:root). Contenedor propio para poder
+   hacer scroll (globals.css fija body a overflow:hidden para la app clásica). */
+
+.plat {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.6;
+}
+.plat * { box-sizing: border-box; }
+.plat-wrap { max-width: 620px; margin: 0 auto; padding: 20px 20px 120px; }
+
+/* ── cabecera / navegación ── */
+.plat-nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: rgba(8, 11, 20, 0.85);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+}
+.plat-nav-inner {
+  max-width: 620px;
+  margin: 0 auto;
+  display: flex;
+  gap: 4px;
+  padding: 10px 12px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.plat-nav-inner::-webkit-scrollbar { display: none; }
+.plat-nav a {
+  flex: none;
+  text-decoration: none;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 7px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.plat-nav a.on { color: var(--cream); background: rgba(196, 48, 106, 0.16); }
+
+.plat h1 {
+  font-family: Georgia, 'Cormorant Garamond', serif;
+  font-weight: 500;
+  font-size: 1.9rem;
+  line-height: 1.15;
+  letter-spacing: 0.01em;
+  margin: 18px 0 6px;
+  text-wrap: balance;
+}
+.plat .eyebrow {
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--rose);
+  margin: 8px 0 0;
+}
+.plat .lede { color: var(--sand); margin: 0 0 24px; }
+.plat h2 {
+  font-family: Georgia, serif;
+  font-weight: 500;
+  font-size: 1.3rem;
+  margin: 28px 0 12px;
+}
+.plat p { max-width: 60ch; }
+
+/* ── tarjetas ── */
+.plat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+  margin: 14px 0;
+}
+
+/* ── botones ── */
+.plat-btn {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 12px;
+  padding: 13px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  background: var(--terra);
+  color: #fff;
+  transition: filter 0.15s ease;
+  width: 100%;
+}
+.plat-btn:hover { filter: brightness(1.12); }
+.plat-btn.ghost {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--sand);
+}
+.plat-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* ── grid de opciones (estado / necesidad / respuestas del test) ── */
+.plat-options { display: grid; gap: 10px; margin: 16px 0; }
+.plat-options.cols2 { grid-template-columns: 1fr 1fr; }
+.plat-opt {
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 15px 16px;
+  color: var(--cream);
+  font-size: 15px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.plat-opt:hover { border-color: var(--border2); }
+.plat-opt.sel { border-color: var(--rose); background: rgba(224, 80, 138, 0.12); }
+.plat-opt .em { font-size: 22px; display: block; margin-bottom: 4px; }
+
+/* ── progreso del test ── */
+.plat-progress { height: 4px; background: var(--card2); border-radius: 999px; overflow: hidden; margin: 8px 0 20px; }
+.plat-progress > span { display: block; height: 100%; background: linear-gradient(90deg, var(--terra), var(--rose)); transition: width 0.3s ease; }
+.plat-qnum { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+
+/* ── mapa emocional ── */
+.plat-map-row { display: grid; grid-template-columns: 1fr; gap: 4px; margin: 14px 0; }
+.plat-map-row .top { display: flex; justify-content: space-between; align-items: baseline; font-size: 14px; }
+.plat-map-row .val { font-variant-numeric: tabular-nums; color: var(--sand); font-size: 13px; }
+.plat-map-track { height: 10px; background: var(--card2); border-radius: 999px; overflow: hidden; }
+.plat-map-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--terra), var(--rose)); transition: width 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.plat-map-fill.low { background: linear-gradient(90deg, #8a5a3a, #c88a5a); }
+.plat-map-row .hint { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.plat-level {
+  text-align: center;
+  padding: 24px;
+  border: 1px solid var(--border2);
+  border-radius: 18px;
+  background: rgba(196, 48, 106, 0.06);
+  margin: 16px 0;
+}
+.plat-level .lname { font-family: Georgia, serif; font-size: 1.6rem; color: var(--rose); }
+.plat-level .ldesc { color: var(--sand); font-size: 14px; margin-top: 6px; }
+
+.plat-disclaimer {
+  font-size: 12.5px;
+  color: var(--muted);
+  border-left: 2px solid var(--border2);
+  padding-left: 12px;
+  margin: 20px 0;
+  max-width: none;
+}
+
+.plat-msg { font-size: 13.5px; min-height: 20px; margin-top: 10px; }
+.plat-msg.err { color: #f0889a; }
+.plat-msg.ok { color: #7fb894; }
+
+.plat-empty { text-align: center; color: var(--muted); padding: 40px 20px; }
+
+.plat-reco { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.plat-reco a {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  text-decoration: none; color: var(--cream);
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 14px 16px; font-size: 15px;
+}
+.plat-reco a:hover { border-color: var(--border2); }
+.plat-reco a .arw { color: var(--rose); }
+
+@media (max-width: 400px) {
+  .plat-options.cols2 { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .plat-map-fill, .plat-progress > span { transition: none; }
+}

@@ -2087,3 +2087,15 @@ function mostrarHabitoToast(msg, icon){
   setTimeout(() => t.classList.remove('show'), 5000);
 }
 
+
+// Deep-links desde las pantallas nuevas (/hoy, /mapa…): /#sos, /#refugio, etc.
+(function () {
+  function fromHash() {
+    var h = (location.hash || '').replace('#', '');
+    if (h && typeof go === 'function' && Array.isArray(screens) && screens.indexOf(h) >= 0) {
+      try { go(h); } catch (e) {}
+    }
+  }
+  window.addEventListener('hashchange', fromHash);
+  if (location.hash) setTimeout(fromHash, 0);
+})();

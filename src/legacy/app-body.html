@@ -15,7 +15,7 @@
 
 <!-- ══ NAV ══ -->
 <nav>
-  <div class="nav-logo">Inquebrantable</div>
+  <a class="nav-logo" href="/hoy" style="text-decoration:none;color:inherit">Inquebrantable</a>
   <div class="nav-tabs" id="navTabs">
     <button class="nav-tab active"  onclick="go('inicio')">Inicio</button>
     <button class="nav-tab"        onclick="go('historia')">Historia</button>
@@ -41,6 +41,9 @@
 <div class="nav-drawer" id="navDrawer">
 
   <div class="drawer-section-label">Navegar</div>
+
+  <button class="nav-drawer-link" data-num="00" data-icon="✦"
+    onclick="location.href='/hoy'">Hoy · ¿cómo estás?</button>
 
   <button class="nav-drawer-link" data-num="01" data-icon="⚪️"
     onclick="go('inicio');closeDrawer()">Inicio</button>
