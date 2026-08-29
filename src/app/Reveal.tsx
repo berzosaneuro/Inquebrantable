@@ -31,7 +31,7 @@ export default function Reveal() {
     els.forEach((el) => io.observe(el))
 
     // Fallback: nada debe quedarse invisible.
-    const t = setTimeout(revealAll, 2500)
+    const t = setTimeout(revealAll, 1000)
 
     return () => {
       io.disconnect()
