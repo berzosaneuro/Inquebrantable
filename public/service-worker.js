@@ -1,9 +1,9 @@
-const CACHE = 'inquebrantable-v2';
+const CACHE = 'inquebrantable-v3';
 const FONT_CACHE = 'inquebrantable-fonts-v1';
 
+// App servida por Next.js: no se precachea el HTML (cambia con cada deploy);
+// solo los estáticos estables. El HTML usa network-first vía el handler fetch.
 const ASSETS = [
-  '/',
-  '/index.html',
   '/manifest.json',
   '/icon-192.png',
   '/icon-512.png',
@@ -12,7 +12,9 @@ const ASSETS = [
 
 self.addEventListener('install', e => {
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then(c => Promise.allSettled(ASSETS.map(a => c.add(a))))
+      .then(() => self.skipWaiting())
   );
 });
 
@@ -51,15 +53,48 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // Resto: cache-first con fallback de red y, si no hay nada, la home.
+  if (url.origin !== self.location.origin) return;
+
+  // Navegación (documento HTML): network-first, cae a la última home cacheada.
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put('/', clone));
+          return res;
+        })
+        .catch(() => caches.match('/', { ignoreSearch: true }))
+    );
+    return;
+  }
+
+  // Assets con hash de Next (/_next/static/...): inmutables, cache-first.
+  if (url.pathname.startsWith('/_next/static/')) {
+    e.respondWith(
+      caches.match(e.request).then(cached =>
+        cached ||
+        fetch(e.request).then(res => {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+          return res;
+        })
+      )
+    );
+    return;
+  }
+
+  // Resto (iconos, manifest, etc.): stale-while-revalidate.
   e.respondWith(
     caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone));
+      const network = fetch(e.request).then(res => {
+        if (res.ok) {
+          const clone = res.clone();
+          caches.open(CACHE).then(c => c.put(e.request, clone));
+        }
         return res;
-      }).catch(() => caches.match('/index.html'));
+      }).catch(() => cached);
+      return cached || network;
     })
   );
 });
