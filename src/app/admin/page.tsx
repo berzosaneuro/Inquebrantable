@@ -59,6 +59,7 @@ export default function AdminPage() {
   const [data, setData] = useState<Data | null>(null)
   const [tab, setTab] = useState<'resumen' | 'usuarias' | 'mensajes' | 'comunidad'>('resumen')
   const [newQ, setNewQ] = useState('')
+  const [isOpen, setIsOpen] = useState(false)
   const [notice, setNotice] = useState('')
 
   const load = useCallback(async () => {
@@ -75,6 +76,7 @@ export default function AdminPage() {
     }
     setAuthed(true)
     setNotice('')
+    setIsOpen(Boolean(json.open))
     setData({
       users: json.users,
       contact: json.contact,
@@ -170,6 +172,16 @@ export default function AdminPage() {
       </div>
 
       {notice && <div className="adm-notice">{notice}</div>}
+      {isOpen && (
+        <div
+          className="adm-notice"
+          style={{ background: 'rgba(178,58,95,.14)', borderColor: 'rgba(178,58,95,.4)', color: '#f0889a' }}
+        >
+          ⚠ Panel <strong>sin contraseña</strong>. Cualquiera con este enlace puede ver
+          los datos de las usuarias. Antes de lanzar, añade la variable{' '}
+          <code>ADMIN_PASSWORD</code> en Vercel.
+        </div>
+      )}
 
       <div className="adm-tabs">
         {(['resumen', 'usuarias', 'mensajes', 'comunidad'] as const).map((t) => (
