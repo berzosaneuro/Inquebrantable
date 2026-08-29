@@ -4,6 +4,7 @@ import Reveal from './Reveal'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { supabaseConfigured } from '@/lib/supabase/env'
 import { LEVELS } from '@/lib/evaluacion'
+import { stepIcon, Leaf } from './(plataforma)/_ui'
 
 export const dynamic = 'force-dynamic'
 
@@ -69,6 +70,7 @@ export default async function HomePage() {
 
         <section className="tight reveal">
           <div className="home-card">
+            <span className="hc-deco" aria-hidden><Leaf /></span>
             <h3>No necesitas saber qué te pasa</h3>
             <p className="body">
               Te ayudamos a entenderte mejor con una evaluación personalizada.
@@ -85,7 +87,7 @@ export default async function HomePage() {
           <div className="home-journey">
             {LEVELS.map((lv) => (
               <div key={lv.idx} className={`step ${levelIdx === lv.idx ? 'on' : ''}`}>
-                <span className="dot" />
+                <span className="dot">{stepIcon(lv.idx)}</span>
                 <span className="lbl">{lv.name}</span>
               </div>
             ))}

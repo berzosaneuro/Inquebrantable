@@ -63,7 +63,9 @@ export default async function MiCaminoPage() {
   let levelIdx = 1
   let score = 35
   let week = [2, 1, 2, 3, 2, 3, 4]
-  let program: { name: string; paso: number } | null = { name: 'Reconstruyéndome', paso: 2 }
+  let program:
+    | { name: string; paso: number; modulo?: number; sesion?: number; pct?: number }
+    | null = { name: 'Reconstruyéndome', paso: 2, modulo: 3, sesion: 2, pct: 60 }
   let achievements = 4
 
   if (supabaseConfigured()) {
@@ -164,11 +166,20 @@ export default async function MiCaminoPage() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <p className="c-label">Tu programa</p>
             <p className="c-title" style={{ fontSize: '1.4rem' }}>{program.name}</p>
-            <p className="c-sub">Módulo {Math.floor(program.paso / 3) + 1} · Sesión {(program.paso % 3) + 1}</p>
-            <div className="bar" style={{ marginTop: 12 }}>
-              <span style={{ width: `${Math.min(100, 20 + program.paso * 20)}%` }} />
-            </div>
-            <p className="pct">{Math.min(100, 20 + program.paso * 20)}% completado</p>
+            <p className="c-sub">
+              Módulo {program.modulo ?? Math.floor(program.paso / 3) + 1} · Sesión {program.sesion ?? (program.paso % 3) + 1}
+            </p>
+            {(() => {
+              const pct = program.pct ?? Math.min(100, 20 + program.paso * 20)
+              return (
+                <>
+                  <div className="bar" style={{ marginTop: 12 }}>
+                    <span style={{ width: `${pct}%` }} />
+                  </div>
+                  <p className="pct">{pct}% completado</p>
+                </>
+              )
+            })()}
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="thumb" src="/pregunta.jpg" alt="" />

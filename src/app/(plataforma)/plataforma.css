@@ -207,8 +207,8 @@
    ANILLO ILUSTRADO (Tu nivel actual)
 ────────────────────────────────────────────── */
 .ring-deco {
-  position: absolute; right: -22px; top: 50%; transform: translateY(-50%);
-  width: 118px; height: 118px; border-radius: 50%;
+  position: absolute; right: -6px; top: 50%; transform: translateY(-50%);
+  width: 104px; height: 104px; border-radius: 50%;
   border: 1px solid var(--rose-soft);
   display: grid; place-items: center; z-index: 0;
 }
@@ -216,8 +216,8 @@
   content: ''; position: absolute; inset: 9px; border-radius: 50%;
   border: 1px solid var(--line);
 }
-.ring-deco svg { width: 58px; height: 58px; color: var(--rose); opacity: 0.85; }
-.card.has-ring { padding-right: 96px; }
+.ring-deco svg { width: 52px; height: 52px; color: var(--rose); opacity: 0.85; }
+.card.has-ring { padding-right: 104px; }
 
 /* ─────────────────────────────────────────────
    MAPA EMOCIONAL — eje emoji + área

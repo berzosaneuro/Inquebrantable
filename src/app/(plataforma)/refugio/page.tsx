@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from '@/lib/useSession'
-import { PlatHeader, IconPlus } from '../_ui'
+import { PlatHeader, IconPeople } from '../_ui'
 
 type Circle = { slug: string; name: string; description: string | null }
 type Post = {
@@ -22,10 +22,16 @@ type Comment = { id: number; author: string; body: string; created_at: string; i
 
 function ago(iso: string) {
   const s = (Date.now() - new Date(iso).getTime()) / 1000
-  if (s < 60) return 'ahora'
-  if (s < 3600) return `hace ${Math.floor(s / 60)} min`
-  if (s < 86400) return `hace ${Math.floor(s / 3600)} h`
-  if (s < 172800) return 'ayer'
+  if (s < 60) return 'Ahora'
+  if (s < 3600) {
+    const m = Math.floor(s / 60)
+    return `Hace ${m} ${m === 1 ? 'minuto' : 'minutos'}`
+  }
+  if (s < 86400) {
+    const h = Math.floor(s / 3600)
+    return `Hace ${h} ${h === 1 ? 'hora' : 'horas'}`
+  }
+  if (s < 172800) return 'Ayer'
   return new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
 }
 const initials = (n: string) => n.slice(0, 2).toUpperCase()
@@ -173,9 +179,9 @@ export default function RefugioPage() {
         title="Refugio"
         sub="Tu lugar seguro."
         action={
-          <button className="tb-btn" onClick={() => (user ? setComposing(true) : gate())} aria-label="Publicar">
-            <IconPlus />
-          </button>
+          <Link href="/circulos" className="tb-btn" aria-label="Grupos y círculos">
+            <IconPeople />
+          </Link>
         }
       />
 
