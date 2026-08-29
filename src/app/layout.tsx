@@ -35,7 +35,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Script id="sw-register" strategy="afterInteractive">
           {`if ('serviceWorker' in navigator) {
             window.addEventListener('load', function () {
-              navigator.serviceWorker.register('/service-worker.js').catch(function(){});
+              navigator.serviceWorker.register('/service-worker.js').then(function (reg) {
+                reg.addEventListener('updatefound', function () {
+                  var w = reg.installing;
+                  if (!w) return;
+                  w.addEventListener('statechange', function () {
+                    if (w.state === 'installed' && navigator.serviceWorker.controller) {
+                      w.postMessage('skipWaiting');
+                    }
+                  });
+                });
+              }).catch(function(){});
+              var reloaded = false;
+              navigator.serviceWorker.addEventListener('controllerchange', function () {
+                if (reloaded) return; reloaded = true; window.location.reload();
+              });
             });
           }`}
         </Script>
