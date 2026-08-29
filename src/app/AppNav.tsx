@@ -12,8 +12,10 @@ const ICONS: Record<string, React.ReactNode> = {
   ),
   camino: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="6" cy="6" r="2.2" /><circle cx="18" cy="12" r="2.2" /><circle cx="8" cy="18" r="2.2" />
-      <path d="M8 6.6c5 .4 6 3 8 4.6M15.8 13.2c-2.5 1.4-4 2.4-5.8 4" strokeLinecap="round" />
+      <rect x="3.5" y="3.5" width="7" height="7" rx="2" />
+      <rect x="13.5" y="3.5" width="7" height="7" rx="2" />
+      <rect x="3.5" y="13.5" width="7" height="7" rx="2" />
+      <rect x="13.5" y="13.5" width="7" height="7" rx="2" />
     </svg>
   ),
   refugio: (

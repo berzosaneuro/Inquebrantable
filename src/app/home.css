@@ -74,10 +74,10 @@
 .home-hero .h-brand {
   font-family: var(--serif);
   font-weight: 500;
-  font-size: clamp(1.55rem, 6.6vw, 2.7rem);
-  letter-spacing: 0.01em;
+  font-size: clamp(1.4rem, 6.4vw, 2.6rem);
+  letter-spacing: 0.015em;
   color: var(--cream);
-  line-height: 1;
+  line-height: 1.02;
 }
 .home-hero .h-tag {
   font-family: var(--serif);

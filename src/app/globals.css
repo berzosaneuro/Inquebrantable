@@ -11,10 +11,14 @@
   --paper-2:   #EDE6D8;   /* tarjeta secundaria / input */
   --paper-3:   #E4DBC9;
 
-  /* azul petróleo / navy (nav, tarjetas destacadas, texto) */
-  --navy:      #1D2C34;
-  --navy-2:    #24343C;
-  --navy-deep: #16232A;
+  /* azul petróleo / navy (tarjetas destacadas) */
+  --navy:      #23323A;
+  --navy-2:    #2A3A42;
+  --navy-deep: #1A272D;
+
+  /* casi-negro neutro — cabeceras y barra inferior */
+  --head:      #171A1E;
+  --head-2:    #1F2327;
 
   /* rosa empolvado — acento */
   --rose:      #D3A0A2;
@@ -60,7 +64,7 @@
   --serif: 'Cormorant Garamond', Georgia, 'Times New Roman', serif;
   --sans:  'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
-  --nav-h: calc(62px + env(safe-area-inset-bottom, 0px));
+  --nav-h: calc(68px + env(safe-area-inset-bottom, 0px));
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
