@@ -3,31 +3,27 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
-const LINKS = [
-  { href: '/hoy', label: 'Hoy' },
-  { href: '/evaluacion', label: 'Test' },
-  { href: '/mapa', label: 'Mapa' },
-  { href: '/diario', label: 'Diario' },
-  { href: '/refugio', label: 'Refugio' },
-  { href: '/circulos', label: 'Círculos' },
-  { href: '/pregunta', label: 'Pregunta' },
-  { href: '/herramientas', label: 'Herramientas' },
-  { href: '/progreso', label: 'Progreso' },
-  { href: '/recursos', label: 'Recursos' },
-  { href: '/', label: 'App clásica' },
+// Navegación principal: 5 áreas. Todo lo demás vive dentro de ellas.
+const AREAS = [
+  { href: '/hoy', label: 'Hoy', match: ['/hoy'] },
+  { href: '/mi-camino', label: 'Mi camino', match: ['/mi-camino', '/evaluacion', '/mapa', '/diario', '/progreso'] },
+  { href: '/refugio', label: 'Refugio', match: ['/refugio', '/circulos', '/pregunta'] },
+  { href: '/herramientas', label: 'Herramientas', match: ['/herramientas', '/recursos'] },
+  { href: '/yo', label: 'Yo', match: ['/yo'] },
 ]
 
 export default function Nav() {
   const path = usePathname()
   return (
-    <nav className="plat-nav">
-      <div className="plat-nav-inner">
-        {LINKS.map((l) => (
-          <Link key={l.href} href={l.href} className={path === l.href ? 'on' : ''}>
-            {l.label}
+    <div className="plat-tabbar" role="navigation" aria-label="Navegación principal">
+      {AREAS.map((a) => {
+        const active = a.match.some((m) => path === m || path.startsWith(m + '/'))
+        return (
+          <Link key={a.href} href={a.href} className={active ? 'on' : ''}>
+            {a.label}
           </Link>
-        ))}
-      </div>
-    </nav>
+        )
+      })}
+    </div>
   )
 }

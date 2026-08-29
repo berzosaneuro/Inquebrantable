@@ -2,33 +2,43 @@
 
 
 /* ═══════════════════════════════════════
-   TOKENS — azul noche · magenta · crema
+   TOKENS — azul noche · piedra · granate · crema
+   (rediseño: el magenta deja de dominar; acción = granate/berry)
 ═══════════════════════════════════════ */
 :root {
-  /* fondos — azul noche profundo */
-  --bg:       #080B14;
-  --bg2:      #0C1020;
-  --card:     #111628;
-  --card2:    #161D32;
+  /* fondos — azul noche profundo, neutro */
+  --bg:       #0C1116;
+  --bg2:      #141A1F;
+  --card:     #161C22;
+  --card2:    #1D242B;
 
-  /* acento principal — crema calida */
-  --gold:     #F0E6D3;
-  --gold2:    #FAF3EA;
+  /* crema cálida (acento de texto, éxitos) */
+  --gold:     #E8DFCB;
+  --gold2:    #F4EEDF;
 
-  /* acento emocional — magenta/rosa futurista */
-  --terra:    #C4306A;
-  --rose:     #E0508A;
+  /* granate / berry profundo = acción principal · rosa apagado = acento */
+  --terra:    #7E3247;
+  --rose:     #C08497;
+
+  /* superficie clara para el home editorial */
+  --paper:      #F1EADB;
+  --paper-ink:  #241E22;
+  --paper-soft: #E6DDC9;
+
+  /* verde salvia — uso puntual */
+  --sage:     #8AA588;
+  --stone:    #8C8578;
 
   /* texto */
-  --cream:    #F0E8DC;
-  --sand:     #C8BAA8;
-  --muted:    rgba(240,232,220,0.42);
-  --muted2:   rgba(240,232,220,0.25);
+  --cream:    #ECE4D5;
+  --sand:     #B0A691;
+  --muted:    rgba(236,228,213,0.44);
+  --muted2:   rgba(236,228,213,0.22);
 
-  /* bordes y brillos */
-  --border:   rgba(196,48,106,0.18);
-  --border2:  rgba(196,48,106,0.30);
-  --glow:     rgba(196,48,106,0.08);
+  /* bordes y brillos — piedra, no magenta */
+  --border:   rgba(176,166,145,0.14);
+  --border2:  rgba(176,166,145,0.26);
+  --glow:     rgba(126,50,71,0.10);
 }
 
 /* ═══════════════════════════════════════
@@ -58,13 +68,13 @@ body::before {
   z-index: 9500;
 }
 
-/* niebla ambiental — magenta + azul */
+/* niebla ambiental — granate + azul noche, muy tenue */
 body::after {
   content: '';
   position: fixed; inset: 0;
   background:
-    radial-gradient(ellipse 55% 45% at 15% 90%, rgba(196,48,106,0.09) 0%, transparent 65%),
-    radial-gradient(ellipse 45% 35% at 85% 10%, rgba(120,60,180,0.07) 0%, transparent 60%);
+    radial-gradient(ellipse 60% 50% at 12% 92%, rgba(126,50,71,0.10) 0%, transparent 62%),
+    radial-gradient(ellipse 50% 40% at 88% 8%, rgba(60,72,90,0.10) 0%, transparent 58%);
   pointer-events: none;
   z-index: 0;
 }

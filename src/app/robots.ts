@@ -7,7 +7,19 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/admin', '/api/', '/diario', '/mapa', '/progreso', '/refugio', '/pregunta'],
+      disallow: [
+        '/admin',
+        '/api/',
+        '/clasica',
+        '/mi-camino',
+        '/yo',
+        '/diario',
+        '/mapa',
+        '/progreso',
+        '/refugio',
+        '/circulos',
+        '/pregunta',
+      ],
     },
     sitemap: `${BASE}/sitemap.xml`,
   }

@@ -79,7 +79,7 @@ export default function DiarioPage() {
           segura.
         </p>
         <Link
-          href="/#menu"
+          href="/clasica#menu"
           className="plat-btn"
           style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
         >

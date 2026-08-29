@@ -149,7 +149,7 @@ export default function RefugioPage() {
           Aquí puedes contar lo que llevas dentro, con tu nombre o de forma anónima. Para
           participar necesitas una cuenta.
         </p>
-        <Link href="/#menu" className="plat-btn" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
+        <Link href="/clasica#menu" className="plat-btn" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
           Crear cuenta / entrar
         </Link>
       </>
@@ -164,7 +164,7 @@ export default function RefugioPage() {
       <h1>{activeCircle?.name || 'Comunidad'}</h1>
       {activeCircle?.description && <p className="lede">{activeCircle.description}</p>}
 
-      <div className="plat-nav-inner" style={{ padding: '0 0 14px', margin: 0 }}>
+      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '0 0 14px', margin: 0 }}>
         {circles.map((c) => (
           <button
             key={c.slug}

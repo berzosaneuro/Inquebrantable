@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from '@/lib/useSession'
 
@@ -27,11 +27,11 @@ type Reco = { href: string; label: string; sub: string }
 
 const RECOS: Record<string, Reco[]> = {
   calmarme: [
-    { href: '/#sos', label: 'Respiración SOS', sub: 'Regúlate en 2 minutos' },
+    { href: '/clasica#sos', label: 'Respiración SOS', sub: 'Regúlate en 2 minutos' },
     { href: '/herramientas', label: 'Necesito calmarme', sub: 'Herramienta guiada' },
   ],
   hablar: [
-    { href: '/#refugio', label: 'El Refugio', sub: 'Escribe y te leen otras mujeres' },
+    { href: '/clasica#refugio', label: 'El Refugio', sub: 'Escribe y te leen otras mujeres' },
     { href: '/herramientas', label: 'Ordenar lo que pienso', sub: 'Antes de hablar con alguien' },
   ],
   entender: [
@@ -39,22 +39,27 @@ const RECOS: Record<string, Reco[]> = {
     { href: '/diario', label: 'Escribir en el diario', sub: '¿Qué siento? ¿Qué necesito?' },
   ],
   acompanada: [
-    { href: '/#refugio', label: 'El Refugio', sub: 'No estás sola aquí' },
-    { href: '/#ritual', label: 'Ritual del día', sub: 'Un momento para ti' },
+    { href: '/clasica#refugio', label: 'El Refugio', sub: 'No estás sola aquí' },
+    { href: '/clasica#ritual', label: 'Ritual del día', sub: 'Un momento para ti' },
   ],
   trabajar: [
     { href: '/evaluacion', label: 'Hacer el test', sub: 'Descubre tu área prioritaria' },
-    { href: '/#programas', label: 'Programas', sub: 'Un camino de días' },
+    { href: '/clasica#programas', label: 'Programas', sub: 'Un camino de días' },
   ],
   ayuda: [
     { href: '/recursos', label: 'Recursos de ayuda', sub: 'Teléfonos y organizaciones (España)' },
-    { href: '/#sos', label: 'SOS', sub: 'Si lo necesitas ahora' },
+    { href: '/clasica#sos', label: 'SOS', sub: 'Si lo necesitas ahora' },
   ],
 }
 
 export default function HoyPage() {
   const { user, loading } = useSession()
   const [mood, setMood] = useState<string | null>(null)
+
+  useEffect(() => {
+    const m = new URLSearchParams(window.location.search).get('m')
+    if (m) setMood(m)
+  }, [])
   const [need, setNeed] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
 
@@ -80,7 +85,7 @@ export default function HoyPage() {
       {!user && !loading && (
         <p className="lede">
           Puedes usar esto sin cuenta.{' '}
-          <Link href="/#menu" style={{ color: 'var(--rose)' }}>
+          <Link href="/clasica#menu" style={{ color: 'var(--rose)' }}>
             Crea una cuenta
           </Link>{' '}
           para guardar tu evolución.

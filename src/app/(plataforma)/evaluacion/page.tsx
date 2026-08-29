@@ -90,7 +90,7 @@ export default function EvaluacionPage() {
             </span>
             <span className="arw">→</span>
           </Link>
-          <Link href={`/#programas`}>
+          <Link href={`/clasica#programas`}>
             <span>
               <strong>Programa: {prog.label}</strong>
               <br />

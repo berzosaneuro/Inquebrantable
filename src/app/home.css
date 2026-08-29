@@ -1,0 +1,276 @@
+/* Home editorial de INQUEBRANTABLE — scroll narrativo, mobile-first.
+   Tema oscuro con secciones de "papel" (crema) alternas para ritmo editorial. */
+
+.home {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+.home * { box-sizing: border-box; }
+
+.home section {
+  position: relative;
+  padding: clamp(72px, 15vw, 140px) 22px;
+}
+.home .wrap { max-width: 620px; margin: 0 auto; }
+
+/* ── tipografía editorial ── */
+.home h1, .home h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: 0.005em;
+  text-wrap: balance;
+  margin: 0;
+}
+.home h1 { font-size: clamp(3.2rem, 13vw, 5.2rem); }
+.home h2 { font-size: clamp(2.1rem, 8vw, 3.1rem); margin-bottom: 20px; }
+.home .kicker {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--rose);
+  margin: 0 0 22px;
+}
+.home p.body {
+  font-size: 1.08rem;
+  color: var(--sand);
+  max-width: 34ch;
+  margin: 0 0 14px;
+}
+.home .paper p.body { color: rgba(36,30,34,0.7); }
+
+/* ── botones ── */
+.home .btn {
+  display: inline-block;
+  text-decoration: none;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 16px 34px;
+  border-radius: 2px;
+  background: var(--terra);
+  color: #F4EEDF;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+.home .btn:hover { background: #93374F; }
+.home .btn.outline {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--cream);
+}
+.home .paper .btn.outline { border-color: rgba(36,30,34,0.28); color: var(--paper-ink); }
+
+/* ── HERO ── */
+.home-hero {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding-bottom: clamp(56px, 12vh, 110px);
+  background:
+    linear-gradient(180deg, rgba(12,17,22,0) 30%, rgba(12,17,22,0.55) 70%, var(--bg) 100%),
+    radial-gradient(ellipse 90% 60% at 70% 20%, rgba(126,50,71,0.42) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 50% at 15% 85%, rgba(60,72,90,0.35) 0%, transparent 55%),
+    url('/hero.jpg'),
+    var(--bg);
+  background-size: cover, cover, cover, cover, cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+.home-hero h1 { margin-bottom: 20px; }
+.home-hero .sub {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(1.25rem, 5vw, 1.7rem);
+  font-style: italic;
+  color: var(--cream);
+  opacity: 0.9;
+  max-width: 24ch;
+  margin: 0 0 34px;
+}
+.home-hero .btn { margin-right: 12px; }
+.home-hero .scroll-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ── secciones de papel (crema) ── */
+.home .paper {
+  background: var(--paper);
+  color: var(--paper-ink);
+}
+.home .paper .kicker { color: #7E3247; }
+.home .paper h2 { color: var(--paper-ink); }
+
+/* ── BLOQUE: cómo estás ── */
+.home-mood { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+.home-mood a {
+  text-decoration: none;
+  font-size: 14px;
+  padding: 12px 18px;
+  border: 1px solid var(--border2);
+  border-radius: 999px;
+  color: var(--cream);
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.home-mood a:hover { border-color: var(--rose); background: rgba(192,132,151,0.1); }
+
+/* ── BLOQUE: tu camino (recorrido vertical) ── */
+.camino { margin-top: 20px; }
+.camino-step {
+  position: relative;
+  padding: 0 0 34px 34px;
+  border-left: 1px solid var(--border2);
+}
+.camino-step:last-child { border-left-color: transparent; padding-bottom: 0; }
+.camino-step::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 4px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--stone);
+}
+.camino-step.here::before { background: var(--rose); box-shadow: 0 0 0 6px rgba(192,132,151,0.18); }
+.camino-step .n {
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.camino-step h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 500;
+  font-size: 1.7rem;
+  margin: 2px 0 4px;
+}
+.camino-step.here h3 { color: var(--rose); }
+.camino-step p { font-size: 14px; color: var(--sand); margin: 0; max-width: 40ch; }
+.camino-you {
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--cream);
+  border-top: 1px solid var(--border);
+  padding-top: 18px;
+}
+
+/* ── BLOQUE: historia de Adriana ── */
+.home-adriana {
+  background:
+    linear-gradient(180deg, var(--bg) 0%, rgba(12,17,22,0.4) 40%, var(--bg) 100%),
+    radial-gradient(ellipse 70% 90% at 100% 0%, rgba(126,50,71,0.25) 0%, transparent 55%),
+    url('/adriana.jpg'),
+    var(--bg2);
+  background-size: cover;
+  background-position: right center;
+  background-repeat: no-repeat;
+}
+.home-adriana .quote {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: clamp(1.4rem, 6vw, 2rem);
+  line-height: 1.35;
+  color: var(--cream);
+  margin: 0 0 24px;
+  max-width: 22ch;
+}
+.home-adriana .sig {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.1rem;
+  color: var(--rose);
+  letter-spacing: 0.04em;
+}
+
+/* ── BLOQUE: necesidades ── */
+.needs { display: flex; flex-direction: column; margin-top: 10px; }
+.needs a {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  text-decoration: none;
+  color: var(--cream);
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+  transition: padding-left 0.2s ease, color 0.2s ease;
+}
+.needs a:first-child { border-top: 1px solid var(--border); }
+.needs a:hover { padding-left: 8px; color: var(--rose); }
+.needs a .lbl {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.55rem;
+  font-weight: 500;
+}
+.needs a .hint { font-size: 12px; color: var(--muted); text-align: right; max-width: 16ch; }
+
+/* ── BLOQUE: avanzando ── */
+.home-progress { display: flex; gap: 28px; margin: 24px 0 30px; }
+.home-progress .stat { }
+.home-progress .stat .n {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2.6rem;
+  color: var(--rose);
+  line-height: 1;
+}
+.home-progress .stat .l {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* ── BLOQUE FINAL ── */
+.home-final {
+  text-align: center;
+  background: radial-gradient(ellipse 100% 80% at 50% 100%, rgba(126,50,71,0.3) 0%, transparent 60%), var(--bg);
+}
+.home-final h2 { max-width: 16ch; margin: 0 auto 28px; }
+.home-final .btn { margin-top: 4px; }
+
+/* ── footer ── */
+.home-foot {
+  padding: 40px 22px 56px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+}
+.home-foot a { color: var(--muted); text-decoration: none; font-size: 12px; margin: 0 10px; }
+.home-foot .brand {
+  font-family: 'Cormorant Garamond', serif;
+  letter-spacing: 0.3em;
+  font-size: 13px;
+  color: var(--sand);
+  margin-bottom: 14px;
+}
+.home-foot .legal { font-size: 11px; color: var(--muted); margin-top: 16px; max-width: 40ch; margin-left: auto; margin-right: auto; line-height: 1.7; }
+
+/* ── scroll reveal ── */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.2,0.8,0.2,1); }
+.reveal.in { opacity: 1; transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .home { scroll-behavior: auto; }
+}
+
+@media (min-width: 720px) {
+  .home section { padding-left: 40px; padding-right: 40px; }
+  .home-hero h1 { font-size: 5.6rem; }
+}
