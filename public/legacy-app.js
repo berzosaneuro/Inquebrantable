@@ -1085,6 +1085,12 @@ async function guardarTerapia(){
     .join('');
   msgEl.innerHTML = html;
 
+  if (window.__inqCrisis) {
+    msgEl.innerHTML += '<a href="/recursos" style="display:inline-block;margin-top:14px;padding:11px 18px;border-radius:10px;background:var(--terra);color:#fff;text-decoration:none;font-size:14px">Ver recursos de ayuda</a>';
+  } else {
+    msgEl.innerHTML += '<p style="margin:18px 0 0;font-size:11px;color:var(--muted);line-height:1.8">Este acompañamiento no sustituye a un profesional de la salud mental.</p>';
+  }
+
   añadirNotif('✦ Completaste tu reflexión de hoy.', 'terapia');
   registrarHabito('terapia');
   renderTerapiaHist();
@@ -1092,106 +1098,22 @@ async function guardarTerapia(){
 
 // ── EVALUACIÓN CON IA REAL (Claude API) ──
 async function generarEvaluacionIA(entry){
-  const t1 = (entry.ta1||'').trim();
-  const t2 = (entry.ta2||'').trim();
-  const t3 = (entry.ta3||'').trim();
-  const t4 = (entry.ta4||'').trim();
-  const t5 = (entry.ta5||'').trim();
-
-  const respuestasTexto = [
-    t1 ? `¿Qué sentiste hoy?\n"${t1}"` : null,
-    t2 ? `¿Qué límite lograste poner?\n"${t2}"` : null,
-    t3 ? `¿Qué aprendiste sobre ti hoy?\n"${t3}"` : null,
-    t4 ? `¿Qué necesitas soltar?\n"${t4}"` : null,
-    t5 ? `¿De qué te sientes orgullosa hoy?\n"${t5}"` : null,
-  ].filter(Boolean).join('\n\n');
-
-  const sistemaPrompt = `Eres un panel de evaluación psicológica clínica que integra los métodos y perspectivas de los 10 psicólogos más influyentes de la historia:
-
-1. AARON BECK — Terapia cognitiva: detectas distorsiones cognitivas (catastrofización, pensamiento todo-o-nada, filtro mental, personalización, lectura de mente). Identificas el diálogo interno negativo automático.
-
-2. CARL ROGERS — Psicología humanista: escuchas con empatía radical, aceptas incondicionalmente, reflejas lo que la persona dice sin interpretar en exceso, ayudas a que se vea a sí misma con claridad y sin juicio.
-
-3. VIKTOR FRANKL — Logoterapia: buscas el sentido que la persona da a su sufrimiento. Detectas si hay vacío existencial, si la persona ha perdido el rumbo, si hay algo que todavía la ancla a la vida.
-
-4. MARSHA LINEHAN — DBT (Terapia Dialéctico Conductual): evalúas la regulación emocional, validas el dolor sin reforzar la evitación, identificas si la persona necesita habilidades de tolerancia al malestar o de efectividad interpersonal.
-
-5. ALBERT ELLIS — TREC: detectas creencias irracionales del tipo "debo ser perfecta", "necesito que me aprueben", "esto es insoportable". Señalas las exigencias absolutas que generan sufrimiento innecesario.
-
-6. BESSEL VAN DER KOLK — Trauma: lees entre líneas para detectar señales de trauma no procesado, reactivación somática, hipervigilancia o disociación emocional. El cuerpo lleva la cuenta.
-
-7. KRISTIN NEFF — Autocompasión: evalúas si la persona se trata con la misma compasión que trataría a una amiga. Detectas el autocrítica excesiva y propones el antídoto: ternura hacia una misma.
-
-8. DANIEL GOLEMAN — Inteligencia emocional: evalúas la autoconciencia emocional, la autorregulación, la empatía hacia sí misma, y la capacidad de gestionar relaciones.
-
-9. MARTIN SELIGMAN — Psicología positiva (PERMA): buscas indicadores de emociones positivas, compromiso, relaciones, sentido y logros. Evalúas si la persona tiene recursos de resiliencia o está en déficit.
-
-10. IRVIN YALOM — Psicoterapia existencial: exploras los temas de muerte, libertad, soledad e insignificancia que subyacen bajo el malestar. Buscas qué está evitando enfrentar y qué podría liberarla.
-
----
-
-TU MISIÓN CLÍNICA:
-Analiza las respuestas de reflexión emocional diaria de esta persona con la mirada integrada de todos estos enfoques. Tu análisis debe ser:
-
-- ESPECÍFICO: cita sus palabras exactas cuando reflejen algo significativo
-- PROFUNDO: ve más allá de lo que dice, a lo que sugiere
-- CLÍNICO pero CÁLIDO: eres profesional sin ser frío, cercano sin ser condescendiente
-- ACCIONABLE: no solo describes, orientas hacia el cambio real
-- HONESTO: si hay algo preocupante, lo nombras con cuidado pero sin evitarlo
-
-Escribe en español, en segunda persona (tú), con tono de terapeuta experto que respeta profundamente a quien tiene delante.
-
-Estructura obligatoria con estos encabezados exactos:
-
-**ESTADO EMOCIONAL ACTUAL**
-(Diagnóstico clínico del momento emocional real. Qué emociones predominan, con qué intensidad, si hay contradicciones entre lo que dice y lo que revela. Cita sus palabras.)
-
-**LO QUE NOS DICE TU DIÁLOGO INTERNO**
-(Creencias, patrones, distorsiones cognitivas o fortalezas que revelan sus respuestas. Qué se dice a sí misma. Qué relación tiene con su propio valor. Cita sus palabras exactas.)
-
-**QUÉ NECESITAS AHORA MISMO**
-(Las 2-3 necesidades psicológicas más urgentes basadas en sus respuestas. Ser específica: no "cuidarte más" sino qué tipo de cuidado, para qué, cómo.)
-
-**PASOS CONCRETOS PARA ESTA SEMANA**
-(3-4 acciones prácticas, pequeñas y reales, derivadas directamente de lo que escribió. No genéricas. Que pueda hacer hoy o mañana.)
-
-**MENSAJE FINAL**
-(Un párrafo de cierre terapéutico: cálido, directo, que la vea de verdad. Que sienta que alguien la ha escuchado realmente.)`;
-
-
-  const nombre = JSON.parse(localStorage.getItem('inq-session') || '{}').nick || 'la persona';
-  const progData = getProgresoData ? getProgresoData() : null;
-  const diasFuertes = progData ? calcDiasFuertes(progData) : null;
-  const contexto = diasFuertes !== null ? `Contexto adicional: lleva ${diasFuertes} día${diasFuertes!==1?'s':''} de racha sin recaídas. Su nombre es ${nombre}.` : `Su nombre es ${nombre}.`;
-
-  const userPrompt = `${contexto}
-
-Estas son sus respuestas de hoy a las preguntas de reflexión emocional:
-
-${respuestasTexto}
-
-Analiza sus respuestas con toda la profundidad clínica que puedas. Ve más allá de lo superficial — qué hay debajo de lo que dice, qué patrones se repiten, qué necesita realmente. Sé específica, cita sus palabras, y oriéntala hacia acciones concretas.`;
-
+  const answers = [1,2,3,4,5].map(i => (entry['ta'+i]||'').trim()).filter(Boolean);
+  const nick = JSON.parse(localStorage.getItem('inq-session') || '{}').nick || '';
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/hablar', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
-        max_tokens: 1800,
-        system: sistemaPrompt,
-        messages: [{ role: 'user', content: userPrompt }]
-      })
+      body: JSON.stringify({ answers: answers, nick: nick })
     });
-    if(!res.ok) throw new Error('API error ' + res.status);
     const data = await res.json();
-    const texto = data?.content?.[0]?.text || '';
-    if(texto.length > 50) return texto;
-  } catch(e){
-    console.warn('IA no disponible, usando valoración offline:', e.message);
+    if (data && data.crisis) { window.__inqCrisis = true; return data.message; }
+    window.__inqCrisis = false;
+    if (data && data.text) return data.text;
+  } catch (e) {
+    window.__inqCrisis = false;
   }
-
-  // ── FALLBACK OFFLINE ──
+  // Sin IA disponible: motor de valoración offline incluido en la app.
   return generarValoracionTerapia(entry);
 }
 

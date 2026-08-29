@@ -12,6 +12,7 @@ const LINKS = [
   { href: '/circulos', label: 'Círculos' },
   { href: '/pregunta', label: 'Pregunta' },
   { href: '/herramientas', label: 'Herramientas' },
+  { href: '/progreso', label: 'Progreso' },
   { href: '/recursos', label: 'Recursos' },
   { href: '/', label: 'App clásica' },
 ]

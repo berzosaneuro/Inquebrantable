@@ -1,0 +1,66 @@
+.lnd {
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--bg);
+  color: var(--cream);
+  font-family: 'DM Sans', -apple-system, system-ui, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lnd-inner {
+  max-width: 540px;
+  padding: 48px 24px 80px;
+  text-align: center;
+}
+.lnd-brand {
+  font-size: 12px;
+  letter-spacing: 0.32em;
+  color: var(--rose);
+  margin: 0 0 28px;
+}
+.lnd h1 {
+  font-family: Georgia, 'Cormorant Garamond', serif;
+  font-weight: 500;
+  font-size: clamp(2rem, 7vw, 2.9rem);
+  line-height: 1.15;
+  margin: 0 0 18px;
+  text-wrap: balance;
+}
+.lnd-sub {
+  color: var(--sand);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  margin: 0 auto 32px;
+  max-width: 42ch;
+}
+.lnd-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 320px;
+  margin: 0 auto;
+}
+.lnd-btn {
+  display: block;
+  text-decoration: none;
+  border-radius: 12px;
+  padding: 14px 20px;
+  font-size: 15px;
+  font-weight: 500;
+  background: var(--terra);
+  color: #fff;
+}
+.lnd-btn.ghost {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--sand);
+}
+.lnd-foot {
+  margin: 40px auto 0;
+  font-size: 12px;
+  color: var(--muted);
+  max-width: 38ch;
+  line-height: 1.7;
+}
