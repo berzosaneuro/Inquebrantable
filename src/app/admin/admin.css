@@ -1,0 +1,111 @@
+.adm {
+  --bg: #080B14;
+  --surface: #111628;
+  --surface-2: #161D32;
+  --border: rgba(196, 48, 106, 0.16);
+  --cream: #F0E8DC;
+  --sand: #C8BAA8;
+  --muted: rgba(240, 232, 220, 0.45);
+  --rose: #E0508A;
+  --rose-deep: #C4306A;
+  --ok: #7FB894;
+  --warn: #D6A06A;
+
+  position: fixed;
+  inset: 0;
+  overflow-y: auto;
+  background: var(--bg);
+  color: var(--cream);
+  font-family: "DM Sans", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.adm * { box-sizing: border-box; }
+.adm-wrap { max-width: 1000px; margin: 0 auto; padding: 40px 24px 100px; }
+
+.adm h1 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  font-size: 2rem;
+  letter-spacing: .04em;
+  margin: 0 0 4px;
+}
+.adm .sub { color: var(--muted); font-size: 13px; margin: 0 0 32px; letter-spacing: .02em; }
+
+/* ── login ── */
+.adm-login {
+  max-width: 360px;
+  margin: 14vh auto 0;
+  text-align: center;
+}
+.adm-login h1 { font-size: 1.6rem; margin-bottom: 24px; }
+.adm input[type="password"],
+.adm input[type="text"] {
+  width: 100%;
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--cream);
+  font-size: 15px;
+  font-family: inherit;
+}
+.adm input:focus { outline: 2px solid var(--rose); outline-offset: 1px; }
+.adm button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 10px;
+  padding: 11px 18px;
+  font-size: 14px;
+  font-weight: 500;
+  background: var(--rose-deep);
+  color: #fff;
+  transition: background .15s ease;
+}
+.adm button:hover { background: var(--rose); }
+.adm button.ghost { background: transparent; border: 1px solid var(--border); color: var(--sand); }
+.adm button.ghost:hover { background: var(--surface); }
+.adm-login button { width: 100%; margin-top: 12px; }
+.adm .err { color: #F08a9a; font-size: 13px; margin-top: 10px; min-height: 18px; }
+.adm .ok-msg { color: var(--ok); font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+/* ── layout dashboard ── */
+.adm-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.adm-tabs { display: flex; gap: 4px; margin: 28px 0 24px; border-bottom: 1px solid var(--border); }
+.adm-tab {
+  background: none; border: none; color: var(--muted);
+  padding: 10px 14px; font-size: 13px; font-weight: 500; cursor: pointer;
+  border-bottom: 2px solid transparent; letter-spacing: .04em; text-transform: uppercase;
+}
+.adm-tab.on { color: var(--cream); border-bottom-color: var(--rose); }
+
+/* ── stat cards ── */
+.adm-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 28px; }
+.adm-stat { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px; }
+.adm-stat .n { font-family: Georgia, serif; font-size: 2rem; font-weight: 500; }
+.adm-stat .l { font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-top: 4px; }
+
+.adm-bars { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
+.adm-bars h3 { margin: 0 0 14px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--sand); font-weight: 500; }
+.adm-bar-row { display: grid; grid-template-columns: 130px 1fr 36px; align-items: center; gap: 12px; margin: 8px 0; font-size: 13px; }
+.adm-bar-track { height: 8px; background: var(--surface-2); border-radius: 999px; overflow: hidden; }
+.adm-bar-fill { height: 100%; background: linear-gradient(90deg, var(--rose-deep), var(--rose)); border-radius: 999px; }
+.adm-bar-row .v { text-align: right; font-variant-numeric: tabular-nums; color: var(--sand); }
+
+/* ── tabla ── */
+.adm-table-scroll { overflow-x: auto; border: 1px solid var(--border); border-radius: 14px; }
+.adm table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.adm th, .adm td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+.adm th { font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); background: var(--surface-2); font-weight: 600; }
+.adm tr:last-child td { border-bottom: none; }
+.adm td.msg { max-width: 420px; white-space: pre-wrap; color: var(--sand); }
+.adm .pill { display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; padding: 3px 8px; border-radius: 999px; }
+.adm .pill.pend { background: rgba(214,160,106,.16); color: var(--warn); }
+.adm .pill.done { background: rgba(127,184,148,.16); color: var(--ok); }
+.adm .empty { padding: 40px; text-align: center; color: var(--muted); }
+.adm .when { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.adm td button { padding: 5px 10px; font-size: 11px; }
+
+.adm-notice { background: rgba(214,160,106,.1); border: 1px solid rgba(214,160,106,.3); color: var(--warn); border-radius: 12px; padding: 14px 16px; font-size: 13px; margin-bottom: 20px; }

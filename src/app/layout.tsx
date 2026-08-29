@@ -40,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             });
           }`}
         </Script>
+        <Script src="/inq-sync.js" strategy="afterInteractive" />
         <Script src="/legacy-app.js" strategy="afterInteractive" />
       </body>
     </html>

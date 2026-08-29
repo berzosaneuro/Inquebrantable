@@ -804,38 +804,42 @@ function handleRegister(){
   if(!nick)  { msg.textContent = 'Elige un nickname'; msg.style.color = '#D07070'; return; }
   if(!email || !/\S+@\S+\.\S+/.test(email)) { msg.textContent = 'Email no válido'; msg.style.color = '#D07070'; return; }
   if(pass.length < 6) { msg.textContent = 'Mínimo 6 caracteres'; msg.style.color = '#D07070'; return; }
-  const accounts = JSON.parse(localStorage.getItem('inq-accounts') || '{}');
-  if(accounts[email]) { msg.textContent = 'Email ya registrado'; msg.style.color = '#D07070'; return; }
-  accounts[email] = { password: pass, nick, fecha: new Date().toISOString() };
-  localStorage.setItem('inq-accounts', JSON.stringify(accounts));
-  localStorage.setItem('inq-session',  JSON.stringify({ email, nick, loggedIn: true }));
-  msg.style.color  = 'var(--gold)';
-  msg.textContent  = '✓ Bienvenida, ' + nick + '!';
-  ['reg-nick','reg-email','reg-pass'].forEach(id => document.getElementById(id).value = '');
-  setTimeout(renderMenuAuth, 900);
+  msg.style.color = 'var(--sand)';
+  msg.textContent = 'Creando tu cuenta…';
+  window.__inqAuth.signup(nick, email, pass).then(res => {
+    if(!res.ok){ msg.style.color = '#D07070'; msg.textContent = res.error || 'No se pudo crear la cuenta.'; return; }
+    if(res.needsConfirmation){
+      msg.style.color = 'var(--gold)';
+      msg.textContent = '✓ Te hemos enviado un email para confirmar tu cuenta.';
+      return;
+    }
+    window.__inqAuth.setLocalSession(res.user);
+    msg.style.color = 'var(--gold)';
+    msg.textContent = '✓ Bienvenida, ' + nick + '!';
+    setTimeout(() => location.reload(), 900);
+  }).catch(() => { msg.style.color = '#D07070'; msg.textContent = 'Error de conexión. Inténtalo otra vez.'; });
 }
 
 function handleLogin(){
   const email = document.getElementById('log-email').value.trim();
   const pass  = document.getElementById('log-pass').value;
   const msg   = document.getElementById('log-msg');
-  const accounts = JSON.parse(localStorage.getItem('inq-accounts') || '{}');
-  const acc = accounts[email];
-  if(!acc || acc.password !== pass){
-    msg.textContent = 'Email o contraseña incorrectos';
-    msg.style.color = '#D07070'; return;
-  }
-  localStorage.setItem('inq-session', JSON.stringify({ email, nick: acc.nick, loggedIn: true }));
-  msg.style.color = 'var(--gold)';
-  msg.textContent = '✓ Bienvenida de nuevo, ' + acc.nick + '!';
-  ['log-email','log-pass'].forEach(id => document.getElementById(id).value = '');
-  setTimeout(renderMenuAuth, 900);
+  if(!email || !pass){ msg.textContent = 'Escribe tu email y tu contraseña'; msg.style.color = '#D07070'; return; }
+  msg.style.color = 'var(--sand)';
+  msg.textContent = 'Entrando…';
+  window.__inqAuth.login(email, pass).then(res => {
+    if(!res.ok){ msg.style.color = '#D07070'; msg.textContent = res.error || 'No se pudo entrar.'; return; }
+    window.__inqAuth.setLocalSession(res.user);
+    msg.style.color = 'var(--gold)';
+    msg.textContent = '✓ Bienvenida de nuevo, ' + res.user.nick + '!';
+    setTimeout(() => location.reload(), 800);
+  }).catch(() => { msg.style.color = '#D07070'; msg.textContent = 'Error de conexión. Inténtalo otra vez.'; });
 }
 
 function handleLogout(){
-  localStorage.removeItem('inq-session');
-  renderMenuAuth();
+  window.__inqAuth.clearLocalSession();
   toast('Sesión cerrada');
+  window.__inqAuth.logout().finally(() => setTimeout(() => location.reload(), 400));
 }
 
 function handleContact(){
@@ -844,12 +848,13 @@ function handleContact(){
   const cmsg  = document.getElementById('contact-msg').value.trim();
   const fb    = document.getElementById('contact-feedback');
   if(!name || !cmsg){ fb.textContent = 'Rellena nombre y mensaje'; fb.style.color = '#D07070'; return; }
-  const msgs = JSON.parse(localStorage.getItem('inq-contact-msgs') || '[]');
-  msgs.push({ name, email, msg: cmsg, date: new Date().toLocaleDateString('es-ES') });
-  localStorage.setItem('inq-contact-msgs', JSON.stringify(msgs));
-  fb.style.color = 'var(--gold)';
-  fb.textContent = '✓ Mensaje enviado, gracias ' + name + '!';
-  ['contact-name','contact-email','contact-msg'].forEach(id => document.getElementById(id).value = '');
+  fb.style.color = 'var(--sand)'; fb.textContent = 'Enviando…';
+  window.__inqAuth.contact(name, email, cmsg).then(res => {
+    if(!res.ok){ fb.style.color = '#D07070'; fb.textContent = res.error || 'No se pudo enviar.'; return; }
+    fb.style.color = 'var(--gold)';
+    fb.textContent = '✓ Mensaje enviado, gracias ' + name + '!';
+    ['contact-name','contact-email','contact-msg'].forEach(id => document.getElementById(id).value = '');
+  }).catch(() => { fb.style.color = '#D07070'; fb.textContent = 'Error de conexión.'; });
 }
 
 function renderMenuAuth(){
@@ -905,12 +910,13 @@ function handleContact2(){
   const fb    = document.getElementById('contact-feedback2');
   const sess  = JSON.parse(localStorage.getItem('inq-session') || '{}');
   if(!cmsg){ fb.textContent = 'Escribe tu mensaje'; fb.style.color = '#D07070'; return; }
-  const msgs = JSON.parse(localStorage.getItem('inq-contact-msgs') || '[]');
-  msgs.push({ name: sess.nick || 'Usuaria', email: email || sess.email, msg: cmsg, date: new Date().toLocaleDateString('es-ES') });
-  localStorage.setItem('inq-contact-msgs', JSON.stringify(msgs));
-  fb.style.color = 'var(--gold)';
-  fb.textContent = '✓ Mensaje enviado, gracias!';
-  ['contact-email2','contact-msg2'].forEach(id => document.getElementById(id).value = '');
+  fb.style.color = 'var(--sand)'; fb.textContent = 'Enviando…';
+  window.__inqAuth.contact(sess.nick || 'Usuaria', email || sess.email || '', cmsg).then(res => {
+    if(!res.ok){ fb.style.color = '#D07070'; fb.textContent = res.error || 'No se pudo enviar.'; return; }
+    fb.style.color = 'var(--gold)';
+    fb.textContent = '✓ Mensaje enviado, gracias!';
+    ['contact-email2','contact-msg2'].forEach(id => document.getElementById(id).value = '');
+  }).catch(() => { fb.style.color = '#D07070'; fb.textContent = 'Error de conexión.'; });
 }
 
 function switchMenuTab(tab){
