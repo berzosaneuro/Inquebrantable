@@ -16,9 +16,36 @@ type Stats = {
   testsCompleted: number
   usersWithTest: number
   pendingMessages: number
+  pendingReports: number
+  posts: number
+  comments: number
   levels: { name: string; count: number }[]
 }
-type Data = { users: User[]; contact: Contact[]; stats: Stats }
+type Report = {
+  id: number
+  target_type: 'post' | 'comment'
+  target_id: number
+  reason: string | null
+  created_at: string
+  content: { id: number; body: string; hidden: boolean } | null
+}
+type PostRow = {
+  id: number
+  circle_slug: string
+  body: string
+  hidden: boolean
+  is_anonymous: boolean
+  created_at: string
+}
+type DailyQ = { id: number; question: string; active: boolean }
+type Data = {
+  users: User[]
+  contact: Contact[]
+  stats: Stats
+  reports: Report[]
+  recentPosts: PostRow[]
+  dailyQuestions: DailyQ[]
+}
 
 function fmt(iso: string) {
   const d = new Date(iso)
@@ -30,7 +57,8 @@ export default function AdminPage() {
   const [password, setPassword] = useState('')
   const [err, setErr] = useState('')
   const [data, setData] = useState<Data | null>(null)
-  const [tab, setTab] = useState<'resumen' | 'usuarias' | 'mensajes'>('resumen')
+  const [tab, setTab] = useState<'resumen' | 'usuarias' | 'mensajes' | 'comunidad'>('resumen')
+  const [newQ, setNewQ] = useState('')
   const [notice, setNotice] = useState('')
 
   const load = useCallback(async () => {
@@ -47,8 +75,24 @@ export default function AdminPage() {
     }
     setAuthed(true)
     setNotice('')
-    setData({ users: json.users, contact: json.contact, stats: json.stats })
+    setData({
+      users: json.users,
+      contact: json.contact,
+      stats: json.stats,
+      reports: json.reports ?? [],
+      recentPosts: json.recentPosts ?? [],
+      dailyQuestions: json.dailyQuestions ?? [],
+    })
   }, [])
+
+  async function moderate(payload: Record<string, unknown>) {
+    await fetch('/api/admin/moderate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    load()
+  }
 
   useEffect(() => {
     load()
@@ -128,13 +172,19 @@ export default function AdminPage() {
       {notice && <div className="adm-notice">{notice}</div>}
 
       <div className="adm-tabs">
-        {(['resumen', 'usuarias', 'mensajes'] as const).map((t) => (
+        {(['resumen', 'usuarias', 'mensajes', 'comunidad'] as const).map((t) => (
           <button
             key={t}
             className={`adm-tab ${tab === t ? 'on' : ''}`}
             onClick={() => setTab(t)}
           >
-            {t === 'resumen' ? 'Resumen' : t === 'usuarias' ? `Usuarias (${data?.users.length ?? 0})` : `Mensajes (${data?.contact.length ?? 0})`}
+            {t === 'resumen'
+              ? 'Resumen'
+              : t === 'usuarias'
+                ? `Usuarias (${data?.users.length ?? 0})`
+                : t === 'mensajes'
+                  ? `Mensajes (${data?.contact.length ?? 0})`
+                  : `Comunidad (${data?.reports.length ?? 0})`}
           </button>
         ))}
       </div>
@@ -250,6 +300,133 @@ export default function AdminPage() {
             <p className="empty">Todavía no hay mensajes de contacto.</p>
           )}
         </div>
+      )}
+
+      {tab === 'comunidad' && data && (
+        <>
+          <div className="adm-bars" style={{ marginBottom: 20 }}>
+            <h3>Pregunta del día</h3>
+            <p style={{ fontSize: 14, color: 'var(--sand)', margin: '0 0 10px' }}>
+              Activa:{' '}
+              <strong>
+                {data.dailyQuestions.find((q) => q.active)?.question || '— ninguna —'}
+              </strong>
+            </p>
+            <input
+              type="text"
+              value={newQ}
+              placeholder="Nueva pregunta del día"
+              onChange={(e) => setNewQ(e.target.value)}
+              style={{ marginBottom: 8 }}
+            />
+            <button
+              onClick={() => {
+                if (newQ.trim().length > 3) {
+                  moderate({ op: 'set-daily-question', question: newQ.trim() })
+                  setNewQ('')
+                }
+              }}
+            >
+              Publicar pregunta
+            </button>
+          </div>
+
+          <h3 style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--sand)' }}>
+            Denuncias pendientes
+          </h3>
+          <div className="adm-table-scroll" style={{ marginBottom: 24 }}>
+            {data.reports.length > 0 ? (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Tipo</th>
+                    <th>Contenido</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.reports.map((r) => (
+                    <tr key={r.id}>
+                      <td className="when">{fmt(r.created_at)}</td>
+                      <td>{r.target_type === 'post' ? 'Publicación' : 'Comentario'}</td>
+                      <td className="msg">
+                        {r.content ? r.content.body : <em style={{ color: 'var(--muted)' }}>(eliminado)</em>}
+                        {r.content?.hidden && <span className="pill done"> oculto</span>}
+                      </td>
+                      <td>
+                        {r.content && (
+                          <button
+                            className="ghost"
+                            onClick={() =>
+                              moderate({
+                                op: r.target_type === 'post' ? 'hide-post' : 'hide-comment',
+                                id: r.target_id,
+                                hidden: !r.content?.hidden,
+                              })
+                            }
+                          >
+                            {r.content.hidden ? 'Mostrar' : 'Ocultar'}
+                          </button>
+                        )}{' '}
+                        <button
+                          className="ghost"
+                          onClick={() => moderate({ op: 'resolve-report', id: r.id, status: 'reviewed' })}
+                        >
+                          Revisado
+                        </button>{' '}
+                        <button
+                          className="ghost"
+                          onClick={() => moderate({ op: 'resolve-report', id: r.id, status: 'dismissed' })}
+                        >
+                          Descartar
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <p className="empty">No hay denuncias pendientes.</p>
+            )}
+          </div>
+
+          <h3 style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--sand)' }}>
+            Publicaciones recientes
+          </h3>
+          <div className="adm-table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Círculo</th>
+                  <th>Texto</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.recentPosts.map((p) => (
+                  <tr key={p.id}>
+                    <td className="when">{fmt(p.created_at)}</td>
+                    <td>{p.circle_slug}</td>
+                    <td className="msg">
+                      {p.body}
+                      {p.hidden && <span className="pill done"> oculto</span>}
+                    </td>
+                    <td>
+                      <button
+                        className="ghost"
+                        onClick={() => moderate({ op: 'hide-post', id: p.id, hidden: !p.hidden })}
+                      >
+                        {p.hidden ? 'Mostrar' : 'Ocultar'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </div>
   )

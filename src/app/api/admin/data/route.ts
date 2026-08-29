@@ -48,9 +48,52 @@ export async function GET() {
     .order('created_at', { ascending: false })
     .limit(500)
 
+  // ── Comunidad: denuncias pendientes + contenido ──
+  const { data: reports } = await admin
+    .from('inq_reports')
+    .select('id, target_type, target_id, reason, status, created_at')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(200)
+
+  const postIds = (reports ?? []).filter((r) => r.target_type === 'post').map((r) => r.target_id)
+  const commentIds = (reports ?? [])
+    .filter((r) => r.target_type === 'comment')
+    .map((r) => r.target_id)
+
+  const [{ data: reportedPosts }, { data: reportedComments }] = await Promise.all([
+    postIds.length
+      ? admin.from('inq_posts').select('id, body, hidden, is_anonymous, created_at').in('id', postIds)
+      : Promise.resolve({ data: [] as { id: number; body: string; hidden: boolean }[] }),
+    commentIds.length
+      ? admin
+          .from('inq_comments')
+          .select('id, body, hidden, post_id, created_at')
+          .in('id', commentIds)
+      : Promise.resolve({ data: [] as { id: number; body: string; hidden: boolean }[] }),
+  ])
+
+  const { data: recentPosts } = await admin
+    .from('inq_posts')
+    .select('id, circle_slug, body, hidden, is_anonymous, created_at')
+    .order('created_at', { ascending: false })
+    .limit(50)
+
+  const { data: dailyQ } = await admin
+    .from('inq_daily_questions')
+    .select('id, question, active')
+    .order('created_at', { ascending: false })
+
   // ── Estadísticas ──
   const { count: testCount } = await admin
     .from('inq_test_results')
+    .select('id', { count: 'exact', head: true })
+
+  const { count: postsCount } = await admin
+    .from('inq_posts')
+    .select('id', { count: 'exact', head: true })
+  const { count: commentsCount } = await admin
+    .from('inq_comments')
     .select('id', { count: 'exact', head: true })
 
   const { data: testRows } = await admin
@@ -72,11 +115,23 @@ export async function GET() {
     ok: true,
     users,
     contact: contact ?? [],
+    reports: (reports ?? []).map((r) => {
+      const content =
+        r.target_type === 'post'
+          ? (reportedPosts ?? []).find((p) => p.id === r.target_id)
+          : (reportedComments ?? []).find((c) => c.id === r.target_id)
+      return { ...r, content: content ?? null }
+    }),
+    recentPosts: recentPosts ?? [],
+    dailyQuestions: dailyQ ?? [],
     stats: {
       totalUsers: ids.length,
       testsCompleted: testCount ?? 0,
       usersWithTest: Object.keys(latestLevelByUser).length,
       pendingMessages: (contact ?? []).filter((m) => !m.handled).length,
+      pendingReports: (reports ?? []).length,
+      posts: postsCount ?? 0,
+      comments: commentsCount ?? 0,
       levels: LEVELS.map((name, i) => ({ name, count: levelDist[i] })),
     },
   })
