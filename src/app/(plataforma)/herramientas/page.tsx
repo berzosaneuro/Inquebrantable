@@ -136,7 +136,7 @@ export default function HerramientasPage() {
               <div className="plat-card" key={t.id} style={{ margin: '10px 0' }}>
                 <button
                   onClick={() => setOpen(isOpen ? null : t.id)}
-                  style={{ background: 'none', border: 'none', color: 'var(--cream)', textAlign: 'left', width: '100%', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--ink)', textAlign: 'left', width: '100%', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
                 >
                   <strong style={{ fontSize: 15.5 }}>{t.title}</strong>
                   <br />

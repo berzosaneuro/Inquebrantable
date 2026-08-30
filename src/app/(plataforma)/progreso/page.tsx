@@ -110,7 +110,7 @@ export default function ProgresoPage() {
                 borderRadius: 12,
                 border: `1px solid var(--border)`,
                 background: a.got ? 'rgba(224,80,138,0.12)' : 'transparent',
-                color: a.got ? 'var(--cream)' : 'var(--muted)',
+                color: a.got ? 'var(--ink)' : 'var(--ink-mute)',
               }}
             >
               {a.got ? '✦ ' : '· '}

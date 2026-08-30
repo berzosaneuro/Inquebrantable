@@ -65,6 +65,15 @@
   --sans:  'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
   --nav-h: calc(68px + env(safe-area-inset-bottom, 0px));
+
+  /* alias de compatibilidad: nombres antiguos usados por páginas aún sin
+     migrar al sistema nuevo (herramientas, diario, pregunta, progreso, …). */
+  --muted:  var(--ink-mute);
+  --sand:   var(--ink-soft);
+  --card:   var(--paper);
+  --card2:  var(--paper-2);
+  --border: var(--line);
+  --accent: var(--rose);
 }
 
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }

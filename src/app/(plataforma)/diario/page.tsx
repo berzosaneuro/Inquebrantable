@@ -117,7 +117,7 @@ export default function DiarioPage() {
                 background: 'var(--card2)',
                 border: '1px solid var(--border)',
                 borderRadius: 12,
-                color: 'var(--cream)',
+                color: 'var(--ink)',
                 padding: '10px 12px',
                 fontFamily: 'inherit',
                 fontSize: 15,
