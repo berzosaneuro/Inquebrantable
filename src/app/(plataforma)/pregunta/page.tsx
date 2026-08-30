@@ -66,7 +66,7 @@ export default function PreguntaPage() {
       {!loading && !user ? (
         <>
           <p className="lede">Necesitas una cuenta para responder y leer a otras.</p>
-          <Link href="/clasica#menu" className="plat-btn" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
+          <Link href="/entrar" className="plat-btn" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
             Crear cuenta / entrar
           </Link>
         </>

@@ -130,7 +130,7 @@ export default async function MiCaminoPage() {
         title="Mi camino"
         sub={nick ? `Tu evolución, ${nick}.` : 'Tu evolución, paso a paso.'}
         action={
-          <Link href="/clasica#notif" className="tb-btn" aria-label="Notificaciones">
+          <Link href="/notificaciones" className="tb-btn" aria-label="Notificaciones">
             <IconBell />
           </Link>
         }
@@ -158,7 +158,7 @@ export default async function MiCaminoPage() {
         <p className="c-label">Tu siguiente paso</p>
         <p className="c-title" style={{ fontSize: '1.45rem' }}>Respiración consciente</p>
         <p className="c-sub">5 min · Calma tu mente y tu cuerpo.</p>
-        <Link href="/clasica#ritual" className="btn sm" style={{ marginTop: 14 }}>Empezar ahora</Link>
+        <Link href="/ritual" className="btn sm" style={{ marginTop: 14 }}>Empezar ahora</Link>
       </div>
 
       {program ? (
@@ -189,7 +189,7 @@ export default async function MiCaminoPage() {
           <p className="c-label">Tu programa</p>
           <p className="c-title" style={{ fontSize: '1.4rem' }}>Elige un programa</p>
           <p className="c-sub">Un recorrido guiado de varias sesiones para lo que ahora te pesa.</p>
-          <Link href="/clasica#programas" className="btn sm" style={{ marginTop: 14 }}>Ver programas</Link>
+          <Link href="/programas" className="btn sm" style={{ marginTop: 14 }}>Ver programas</Link>
         </div>
       )}
 
@@ -221,7 +221,7 @@ export default async function MiCaminoPage() {
 
       <div className="rows" style={{ marginTop: 18 }}>
         <Link href="/evaluacion"><span>Repetir evaluación</span><span className="arw">→</span></Link>
-        <Link href="/clasica#niveles"><span>El camino de niveles</span><span className="arw">→</span></Link>
+        <Link href="/niveles"><span>El camino de niveles</span><span className="arw">→</span></Link>
       </div>
     </>
   )

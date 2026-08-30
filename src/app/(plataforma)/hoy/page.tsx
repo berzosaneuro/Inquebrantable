@@ -27,11 +27,11 @@ type Reco = { href: string; label: string; sub: string }
 
 const RECOS: Record<string, Reco[]> = {
   calmarme: [
-    { href: '/clasica#sos', label: 'Respiración SOS', sub: 'Regúlate en 2 minutos' },
+    { href: '/sos', label: 'Respiración SOS', sub: 'Regúlate en 2 minutos' },
     { href: '/herramientas', label: 'Necesito calmarme', sub: 'Herramienta guiada' },
   ],
   hablar: [
-    { href: '/clasica#refugio', label: 'El Refugio', sub: 'Escribe y te leen otras mujeres' },
+    { href: '/refugio', label: 'El Refugio', sub: 'Escribe y te leen otras mujeres' },
     { href: '/herramientas', label: 'Ordenar lo que pienso', sub: 'Antes de hablar con alguien' },
   ],
   entender: [
@@ -39,16 +39,16 @@ const RECOS: Record<string, Reco[]> = {
     { href: '/diario', label: 'Escribir en el diario', sub: '¿Qué siento? ¿Qué necesito?' },
   ],
   acompanada: [
-    { href: '/clasica#refugio', label: 'El Refugio', sub: 'No estás sola aquí' },
-    { href: '/clasica#ritual', label: 'Ritual del día', sub: 'Un momento para ti' },
+    { href: '/refugio', label: 'El Refugio', sub: 'No estás sola aquí' },
+    { href: '/ritual', label: 'Ritual del día', sub: 'Un momento para ti' },
   ],
   trabajar: [
     { href: '/evaluacion', label: 'Hacer el test', sub: 'Descubre tu área prioritaria' },
-    { href: '/clasica#programas', label: 'Programas', sub: 'Un camino de días' },
+    { href: '/programas', label: 'Programas', sub: 'Un camino de días' },
   ],
   ayuda: [
     { href: '/recursos', label: 'Recursos de ayuda', sub: 'Teléfonos y organizaciones (España)' },
-    { href: '/clasica#sos', label: 'SOS', sub: 'Si lo necesitas ahora' },
+    { href: '/sos', label: 'SOS', sub: 'Si lo necesitas ahora' },
   ],
 }
 
@@ -85,7 +85,7 @@ export default function HoyPage() {
       {!user && !loading && (
         <p className="lede">
           Puedes usar esto sin cuenta.{' '}
-          <Link href="/clasica#menu" style={{ color: 'var(--rose)' }}>
+          <Link href="/entrar" style={{ color: 'var(--rose)' }}>
             Crea una cuenta
           </Link>{' '}
           para guardar tu evolución.

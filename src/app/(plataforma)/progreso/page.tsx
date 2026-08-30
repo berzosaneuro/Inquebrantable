@@ -38,7 +38,7 @@ export default function ProgresoPage() {
         <h1>Tu camino, guardado</h1>
         <p className="lede">Crea una cuenta y verás aquí tu evolución día a día.</p>
         <Link
-          href="/clasica#menu"
+          href="/entrar"
           className="plat-btn"
           style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
         >

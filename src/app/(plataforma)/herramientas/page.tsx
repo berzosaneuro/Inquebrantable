@@ -16,7 +16,7 @@ const TOOLS: Record<string, Tool> = {
       'Nombra en voz baja 3 cosas que ves, 2 que oyes, 1 que tocas.',
       'No tienes que resolver nada ahora. Solo estar aquí un minuto más.',
     ],
-    action: { href: '/clasica#sos', label: 'Respiración guiada con voz' },
+    action: { href: '/sos', label: 'Respiración guiada con voz' },
   },
   ansiedad: {
     id: 'ansiedad',
@@ -28,7 +28,7 @@ const TOOLS: Record<string, Tool> = {
       'Moja las muñecas y la nuca con agua fría.',
       'Di en voz alta: «Estoy teniendo ansiedad y puedo sostenerlo».',
     ],
-    action: { href: '/clasica#sos', label: 'SOS con respiración guiada' },
+    action: { href: '/sos', label: 'SOS con respiración guiada' },
   },
   sobrepensar: {
     id: 'sobrepensar',
@@ -64,7 +64,7 @@ const TOOLS: Record<string, Tool> = {
       'Nombra 3 cosas que hiciste esta semana, por pequeñas que sean.',
       'No tienes que sentirte suficiente para serlo.',
     ],
-    action: { href: '/clasica#ritual', label: 'Afirmación del día' },
+    action: { href: '/ritual', label: 'Afirmación del día' },
   },
   decir_no: {
     id: 'decir_no',
@@ -76,7 +76,7 @@ const TOOLS: Record<string, Tool> = {
       'Puedes decir que no y cuidar el vínculo: «Ahora no puedo, pero te quiero igual».',
       'La incomodidad de decir que no dura un momento. La de decir que sí sin querer, días.',
     ],
-    action: { href: '/clasica#programas', label: 'Programa: Poner límites' },
+    action: { href: '/programas', label: 'Programa: Poner límites' },
   },
   limite: {
     id: 'limite',
@@ -112,7 +112,7 @@ const GROUPS: { id: string; label: string; tools: string[]; links?: { href: stri
     tools: [],
     links: [
       { href: '/recursos', label: 'Recursos y teléfonos (España)' },
-      { href: '/clasica#sos', label: 'SOS ahora' },
+      { href: '/sos', label: 'SOS ahora' },
     ],
   },
 ]

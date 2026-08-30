@@ -98,7 +98,7 @@ export default async function HomePage() {
           <div className="home-story">
             <h3>La historia de Adriana</h3>
             <p>De la herida más profunda a mi propósito.</p>
-            <Link href="/clasica#historia">Conoce mi historia →</Link>
+            <Link href="/historia">Conoce mi historia →</Link>
           </div>
         </section>
 

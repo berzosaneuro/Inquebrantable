@@ -116,7 +116,7 @@ export default function RefugioPage() {
 
   useEffect(() => { load() }, [load])
 
-  const gate = () => { window.location.href = '/clasica#menu' }
+  const gate = () => { window.location.href = '/entrar' }
 
   async function publish() {
     if (!body.trim()) return

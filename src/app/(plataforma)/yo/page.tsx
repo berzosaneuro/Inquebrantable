@@ -49,7 +49,7 @@ export default function YoPage() {
             Con una cuenta guardas tus check-ins, tu diario, tu progreso y puedes
             participar en el Refugio. Puedes seguir usando la app sin cuenta.
           </p>
-          <Link href="/clasica#menu" className="btn" style={{ marginTop: 16 }}>
+          <Link href="/entrar" className="btn" style={{ marginTop: 16 }}>
             Crear cuenta o entrar
           </Link>
         </div>
@@ -66,8 +66,8 @@ export default function YoPage() {
             <Link href="/mi-camino"><span>Mi camino</span><span className="arw">→</span></Link>
             <Link href="/progreso"><span>Progreso y logros</span><span className="arw">→</span></Link>
             <Link href="/diario"><span>Diario privado</span><span className="arw">→</span></Link>
-            <Link href="/clasica#menu"><span>Perfil y notificaciones</span><span className="arw">→</span></Link>
-            <Link href="/clasica#menu"><span>Contacto</span><span className="arw">→</span></Link>
+            <Link href="/notificaciones"><span>Notificaciones</span><span className="arw">→</span></Link>
+            <Link href="/entrar?tab=contacto"><span>Contacto</span><span className="arw">→</span></Link>
           </div>
 
           <h2>Privacidad</h2>

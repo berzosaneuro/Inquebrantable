@@ -108,7 +108,7 @@ export default function MapaPage() {
           te recomendamos empezar.
         </p>
         <div className="plat-reco">
-          <Link href="/clasica#programas">
+          <Link href="/programas">
             <span>
               <strong>Programa: {prog.label}</strong>
               <br />
@@ -116,7 +116,7 @@ export default function MapaPage() {
             </span>
             <span className="arw">→</span>
           </Link>
-          <Link href="/clasica#ritual">
+          <Link href="/ritual">
             <span>
               <strong>Ritual del día</strong>
               <br />
