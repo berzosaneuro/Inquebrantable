@@ -87,6 +87,14 @@ export async function POST(req: Request) {
     )
   }
 
+  const { data: muted } = await supabase.rpc('inq_is_muted', { p_user: user.id })
+  if (muted === true) {
+    return NextResponse.json(
+      { ok: false, error: 'Tu cuenta está en pausa en el Refugio. Escríbenos desde Contacto si crees que es un error.' },
+      { status: 403 },
+    )
+  }
+
   const isAnon = Boolean(parsed.data.anonymous)
   const { error } = await supabase.from('inq_posts').insert({
     user_id: user.id,

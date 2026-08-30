@@ -1,445 +1,421 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import Link from 'next/link'
+import './admin.css'
 
-type User = { id: string; nick: string | null; email: string; created_at: string }
-type Contact = {
-  id: number
-  name: string
-  email: string | null
-  message: string
-  handled: boolean
-  created_at: string
-}
+type Level = { name: string; count: number }
 type Stats = {
-  totalUsers: number
-  testsCompleted: number
-  usersWithTest: number
-  pendingMessages: number
-  pendingReports: number
-  posts: number
-  comments: number
-  levels: { name: string; count: number }[]
+  totalUsers: number; newUsers7d: number; activeUsers7d: number; activeUsers30d: number
+  testsCompleted: number; usersWithTest: number; pendingMessages: number; pendingReports: number
+  crisisCount: number; posts: number; posts7d: number; comments: number; comments7d: number
+  checkins: number; checkinsToday: number; checkins7d: number; levels: Level[]
 }
-type Report = {
-  id: number
-  target_type: 'post' | 'comment'
-  target_id: number
-  reason: string | null
-  created_at: string
-  content: { id: number; body: string; hidden: boolean } | null
+type UserRow = {
+  id: string; nick: string | null; email: string; created_at: string
+  posts: number; checkins: number; level: number | null; lastSeen: string
+  muted: boolean; note: string
 }
-type PostRow = {
-  id: number
-  circle_slug: string
-  body: string
-  hidden: boolean
-  is_anonymous: boolean
-  created_at: string
+type Contact = { id: number; name: string; email: string | null; message: string; handled: boolean; created_at: string }
+type ReportRow = {
+  id: number; target_type: 'post' | 'comment'; target_id: number; reason: string | null
+  status: string; created_at: string
+  content: { id: number; body: string; hidden: boolean; circle_slug?: string } | null
 }
-type DailyQ = { id: number; question: string; active: boolean }
-type Data = {
-  users: User[]
-  contact: Contact[]
+type Crisis = {
+  kind: 'crisis' | 'violencia'; content_type: 'post' | 'comment' | 'answer'; content_id: number
+  body: string; author_nick: string | null; circle_slug: string | null; created_at: string
+}
+type PostRow = { id: number; circle_slug: string; body: string; hidden: boolean; is_anonymous: boolean; author_nick: string | null; created_at: string }
+type CommentRow = { id: number; post_id: number; body: string; hidden: boolean; author_nick: string | null; created_at: string }
+type DailyQ = { id: number; question: string; active: boolean; created_at: string }
+
+type Snap = {
+  users: UserRow[]; contact: Contact[]; reports: ReportRow[]; crisis: Crisis[]
+  recentPosts: PostRow[]; recentComments: CommentRow[]; dailyQuestions: DailyQ[]
+  admins: string[]; growth: { day: string; count: number }[]
+  moods7d: Record<string, number>; needs7d: Record<string, number>
+  circles: { slug: string; name: string; posts: number }[]
+  wellbeing: { n: number; avgFirst: number | null; avgLast: number | null } | null
   stats: Stats
-  reports: Report[]
-  recentPosts: PostRow[]
-  dailyQuestions: DailyQ[]
 }
 
-function fmt(iso: string) {
-  const d = new Date(iso)
-  return d.toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })
-}
+const fmt = (iso: string) => new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: '2-digit' })
+const fmtShort = (iso: string) => new Date(iso).toLocaleDateString('es-ES', { day: '2-digit', month: 'short' })
+const MOOD_LBL: Record<string, string> = { mal: 'Mal', ansiosa: 'Ansiosa', triste: 'Triste', agotada: 'Agotada', normal: 'Normal', bien: 'Bien', muy_bien: 'Muy bien' }
+const NEED_LBL: Record<string, string> = { calmarme: 'Calmarme', hablar: 'Hablar', entender: 'Entender', acompanada: 'Acompañada', trabajar: 'Trabajar en mí', ayuda: 'Pedir ayuda' }
+const LEVELS = ['La Grieta', 'El Despertar', 'Reconstrucción', 'Inquebrantable']
 
 export default function AdminPage() {
-  const [authed, setAuthed] = useState<boolean | null>(null)
-  const [password, setPassword] = useState('')
-  const [err, setErr] = useState('')
-  const [data, setData] = useState<Data | null>(null)
-  const [tab, setTab] = useState<'resumen' | 'usuarias' | 'mensajes' | 'comunidad'>('resumen')
-  const [newQ, setNewQ] = useState('')
-  const [isOpen, setIsOpen] = useState(false)
-  const [notice, setNotice] = useState('')
+  const [state, setState] = useState<'loading' | 'no-session' | 'not-admin' | 'error' | 'ok'>('loading')
+  const [snap, setSnap] = useState<Snap | null>(null)
+  const [tab, setTab] = useState<'resumen' | 'comunidad' | 'usuarias' | 'contenido' | 'ajustes'>('resumen')
+  const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
-    const res = await fetch('/api/admin/data', { cache: 'no-store' })
-    if (res.status === 401) {
-      setAuthed(false)
-      return
-    }
-    const json = await res.json()
-    if (!json.ok) {
-      setAuthed(true)
-      setNotice(json.error || 'No se pudieron cargar los datos.')
-      return
-    }
-    setAuthed(true)
-    setNotice('')
-    setIsOpen(Boolean(json.open))
-    setData({
-      users: json.users,
-      contact: json.contact,
-      stats: json.stats,
-      reports: json.reports ?? [],
-      recentPosts: json.recentPosts ?? [],
-      dailyQuestions: json.dailyQuestions ?? [],
-    })
+    const r = await fetch('/api/admin/data', { cache: 'no-store' })
+    if (r.status === 401) { setState('no-session'); return }
+    if (r.status === 403) { setState('not-admin'); return }
+    const j = await r.json()
+    if (!j.ok) { setState('error'); return }
+    setSnap(j as Snap)
+    setState('ok')
   }, [])
 
-  async function moderate(payload: Record<string, unknown>) {
-    await fetch('/api/admin/moderate', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    load()
+  useEffect(() => { load() }, [load])
+
+  async function mod(body: Record<string, unknown>) {
+    setBusy(true)
+    await fetch('/api/admin/moderate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {})
+    await load()
+    setBusy(false)
+  }
+  async function userOp(body: Record<string, unknown>) {
+    setBusy(true)
+    await fetch('/api/admin/user', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => {})
+    await load()
+    setBusy(false)
   }
 
-  useEffect(() => {
-    load()
-  }, [load])
+  if (state === 'loading') return <div className="adm"><p className="adm-mut">Cargando…</p></div>
+  if (state === 'no-session') return (
+    <div className="adm adm-gate">
+      <h1>Panel de Inquebrantable</h1>
+      <p className="adm-mut">Necesitas iniciar sesión con una cuenta autorizada.</p>
+      <Link href="/entrar?next=/admin" className="adm-btn">Iniciar sesión</Link>
+    </div>
+  )
+  if (state === 'not-admin') return (
+    <div className="adm adm-gate">
+      <h1>Sin acceso</h1>
+      <p className="adm-mut">Tu cuenta no está en la lista de administradoras. Si crees que es un error, contacta con quien gestiona el panel.</p>
+      <Link href="/" className="adm-btn ghost">Volver a la app</Link>
+    </div>
+  )
+  if (state === 'error' || !snap) return <div className="adm"><p className="adm-mut">No se pudo cargar el panel.</p></div>
 
-  async function login(e: React.FormEvent) {
-    e.preventDefault()
-    setErr('')
-    const res = await fetch('/api/admin/session', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password }),
-    })
-    const json = await res.json()
-    if (!json.ok) {
-      setErr(json.error || 'No se pudo entrar.')
-      return
-    }
-    setPassword('')
-    load()
-  }
-
-  async function logout() {
-    await fetch('/api/admin/session', { method: 'DELETE' })
-    setAuthed(false)
-    setData(null)
-  }
-
-  async function toggleHandled(c: Contact) {
-    await fetch('/api/admin/data', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: c.id, handled: !c.handled }),
-    })
-    load()
-  }
-
-  if (authed === null) {
-    return (
-      <div className="adm-wrap">
-        <p className="sub">Cargando…</p>
-      </div>
-    )
-  }
-
-  if (!authed) {
-    return (
-      <form className="adm-login" onSubmit={login}>
-        <h1>Inquebrantable · Admin</h1>
-        <input
-          type="password"
-          placeholder="Contraseña"
-          value={password}
-          autoFocus
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <button type="submit">Entrar</button>
-        <p className="err">{err}</p>
-      </form>
-    )
-  }
-
-  const s = data?.stats
+  const s = snap.stats
+  const hideOp = (t: string) => (t === 'post' ? 'hide-post' : t === 'comment' ? 'hide-comment' : 'hide-answer')
 
   return (
-    <div className="adm-wrap">
-      <div className="adm-top">
+    <div className="adm">
+      <header className="adm-head">
         <div>
           <h1>Inquebrantable</h1>
-          <p className="sub">Panel de administración</p>
+          <p className="adm-mut">Panel de administración</p>
         </div>
-        <button className="ghost" onClick={logout}>
-          Salir
-        </button>
-      </div>
+        <Link href="/" className="adm-btn ghost sm">App</Link>
+      </header>
 
-      {notice && <div className="adm-notice">{notice}</div>}
-      {isOpen && (
-        <div
-          className="adm-notice"
-          style={{ background: 'rgba(178,58,95,.14)', borderColor: 'rgba(178,58,95,.4)', color: '#f0889a' }}
-        >
-          ⚠ Panel <strong>sin contraseña</strong>. Cualquiera con este enlace puede ver
-          los datos de las usuarias. Antes de lanzar, añade la variable{' '}
-          <code>ADMIN_PASSWORD</code> en Vercel.
+      {/* alertas */}
+      {(s.crisisCount > 0 || s.pendingReports > 0 || s.pendingMessages > 0) && (
+        <div className="adm-alerts">
+          {s.crisisCount > 0 && <button className="adm-alert crisis" onClick={() => setTab('comunidad')}>⚠ {s.crisisCount} señal{s.crisisCount > 1 ? 'es' : ''} de riesgo sin revisar</button>}
+          {s.pendingReports > 0 && <button className="adm-alert" onClick={() => setTab('comunidad')}>{s.pendingReports} denuncia{s.pendingReports > 1 ? 's' : ''} pendiente{s.pendingReports > 1 ? 's' : ''}</button>}
+          {s.pendingMessages > 0 && <button className="adm-alert" onClick={() => setTab('contenido')}>{s.pendingMessages} mensaje{s.pendingMessages > 1 ? 's' : ''} sin atender</button>}
         </div>
       )}
 
-      <div className="adm-tabs">
-        {(['resumen', 'usuarias', 'mensajes', 'comunidad'] as const).map((t) => (
-          <button
-            key={t}
-            className={`adm-tab ${tab === t ? 'on' : ''}`}
-            onClick={() => setTab(t)}
-          >
-            {t === 'resumen'
-              ? 'Resumen'
-              : t === 'usuarias'
-                ? `Usuarias (${data?.users.length ?? 0})`
-                : t === 'mensajes'
-                  ? `Mensajes (${data?.contact.length ?? 0})`
-                  : `Comunidad (${data?.reports.length ?? 0})`}
+      <nav className="adm-tabs">
+        {(['resumen', 'comunidad', 'usuarias', 'contenido', 'ajustes'] as const).map((t) => (
+          <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
+            {t === 'comunidad' ? `Comunidad${s.crisisCount + s.pendingReports > 0 ? ` (${s.crisisCount + s.pendingReports})` : ''}` :
+             t === 'usuarias' ? `Usuarias (${snap.users.length})` :
+             t.charAt(0).toUpperCase() + t.slice(1)}
           </button>
         ))}
-      </div>
+      </nav>
 
-      {tab === 'resumen' && s && (
+      {tab === 'resumen' && <Resumen snap={snap} />}
+
+      {tab === 'comunidad' && (
         <>
-          <div className="adm-stats">
-            <div className="adm-stat">
-              <div className="n">{s.totalUsers}</div>
-              <div className="l">Usuarias registradas</div>
-            </div>
-            <div className="adm-stat">
-              <div className="n">{s.usersWithTest}</div>
-              <div className="l">Han hecho el test</div>
-            </div>
-            <div className="adm-stat">
-              <div className="n">{s.testsCompleted}</div>
-              <div className="l">Tests completados</div>
-            </div>
-            <div className="adm-stat">
-              <div className="n">{s.pendingMessages}</div>
-              <div className="l">Mensajes sin atender</div>
-            </div>
-          </div>
-          <div className="adm-bars">
-            <h3>Nivel actual de las usuarias</h3>
-            {s.levels.map((lv) => {
-              const max = Math.max(1, ...s.levels.map((x) => x.count))
-              return (
-                <div className="adm-bar-row" key={lv.name}>
-                  <span>{lv.name}</span>
-                  <span className="adm-bar-track">
-                    <span
-                      className="adm-bar-fill"
-                      style={{ width: `${(lv.count / max) * 100}%` }}
-                    />
-                  </span>
-                  <span className="v">{lv.count}</span>
+          {snap.crisis.length > 0 && (
+            <section>
+              <h2>Señales de riesgo</h2>
+              <p className="adm-mut sm">Detección automática por lenguaje. Revisa con criterio; puede haber falsos positivos.</p>
+              {snap.crisis.map((c) => (
+                <div className="adm-card crisis" key={`${c.content_type}-${c.content_id}`}>
+                  <span className={`adm-badge ${c.kind}`}>{c.kind === 'crisis' ? 'Autolesión / suicidio' : 'Violencia'}</span>
+                  <p className="adm-body">{c.body}</p>
+                  <p className="adm-meta">{c.author_nick || 'Anónima'} · {c.content_type} · {fmtShort(c.created_at)}{c.circle_slug ? ` · ${c.circle_slug}` : ''}</p>
+                  <div className="adm-actions">
+                    <button disabled={busy} onClick={() => mod({ op: hideOp(c.content_type), id: c.content_id, hidden: true })}>Ocultar contenido</button>
+                    <button disabled={busy} onClick={() => mod({ op: 'dismiss-crisis', contentType: c.content_type, contentId: c.content_id })}>Marcar revisado</button>
+                  </div>
                 </div>
-              )
-            })}
-          </div>
+              ))}
+            </section>
+          )}
+
+          <section>
+            <h2>Denuncias {snap.reports.length > 0 ? `(${snap.reports.length})` : ''}</h2>
+            {snap.reports.length === 0 && <p className="adm-mut sm">Sin denuncias pendientes.</p>}
+            {snap.reports.map((r) => (
+              <div className="adm-card" key={r.id}>
+                <p className="adm-body">{r.content?.body ?? '(contenido eliminado)'}</p>
+                <p className="adm-meta">{r.target_type} #{r.target_id}{r.reason ? ` · motivo: ${r.reason}` : ''} · {fmtShort(r.created_at)}{r.content?.hidden ? ' · YA OCULTO' : ''}</p>
+                <div className="adm-actions">
+                  {r.content && !r.content.hidden && (
+                    <button disabled={busy} onClick={() => mod({ op: r.target_type === 'post' ? 'hide-post' : 'hide-comment', id: r.target_id, hidden: true })}>Ocultar</button>
+                  )}
+                  <button disabled={busy} onClick={() => mod({ op: 'resolve-report', id: r.id, status: 'reviewed' })}>Resuelto</button>
+                  <button disabled={busy} onClick={() => mod({ op: 'resolve-report', id: r.id, status: 'dismissed' })}>Descartar</button>
+                </div>
+              </div>
+            ))}
+          </section>
+
+          <section>
+            <h2>Publicaciones recientes</h2>
+            {snap.recentPosts.map((p) => (
+              <div className={`adm-row ${p.hidden ? 'hidden' : ''}`} key={p.id}>
+                <div className="adm-row-main">
+                  <p className="adm-body sm">{p.body}</p>
+                  <p className="adm-meta">{p.author_nick || 'Anónima'} · {p.circle_slug} · {fmtShort(p.created_at)}{p.hidden ? ' · OCULTO' : ''}</p>
+                </div>
+                <button className="adm-btn sm ghost" disabled={busy} onClick={() => mod({ op: 'hide-post', id: p.id, hidden: !p.hidden })}>
+                  {p.hidden ? 'Mostrar' : 'Ocultar'}
+                </button>
+              </div>
+            ))}
+          </section>
+
+          <section>
+            <h2>Comentarios recientes</h2>
+            {snap.recentComments.map((c) => (
+              <div className={`adm-row ${c.hidden ? 'hidden' : ''}`} key={c.id}>
+                <div className="adm-row-main">
+                  <p className="adm-body sm">{c.body}</p>
+                  <p className="adm-meta">{c.author_nick || 'Anónima'} · post #{c.post_id} · {fmtShort(c.created_at)}{c.hidden ? ' · OCULTO' : ''}</p>
+                </div>
+                <button className="adm-btn sm ghost" disabled={busy} onClick={() => mod({ op: 'hide-comment', id: c.id, hidden: !c.hidden })}>
+                  {c.hidden ? 'Mostrar' : 'Ocultar'}
+                </button>
+              </div>
+            ))}
+          </section>
         </>
       )}
 
-      {tab === 'usuarias' && (
-        <div className="adm-table-scroll">
-          {data && data.users.length > 0 ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>Nick</th>
-                  <th>Email</th>
-                  <th>Registro</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.users.map((u) => (
-                  <tr key={u.id}>
-                    <td>{u.nick || '—'}</td>
-                    <td>{u.email}</td>
-                    <td className="when">{fmt(u.created_at)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="empty">Todavía no hay usuarias registradas.</p>
-          )}
-        </div>
-      )}
+      {tab === 'usuarias' && <Usuarias users={snap.users} busy={busy} userOp={userOp} />}
 
-      {tab === 'mensajes' && (
-        <div className="adm-table-scroll">
-          {data && data.contact.length > 0 ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>De</th>
-                  <th>Mensaje</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.contact.map((c) => (
-                  <tr key={c.id}>
-                    <td className="when">{fmt(c.created_at)}</td>
-                    <td>
-                      {c.name}
-                      {c.email && (
-                        <>
-                          <br />
-                          <span className="when">{c.email}</span>
-                        </>
-                      )}
-                    </td>
-                    <td className="msg">{c.message}</td>
-                    <td>
-                      <span className={`pill ${c.handled ? 'done' : 'pend'}`}>
-                        {c.handled ? 'Atendido' : 'Pendiente'}
-                      </span>
-                      <br />
-                      <button className="ghost" onClick={() => toggleHandled(c)}>
-                        {c.handled ? 'Marcar pendiente' : 'Marcar atendido'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="empty">Todavía no hay mensajes de contacto.</p>
-          )}
-        </div>
-      )}
-
-      {tab === 'comunidad' && data && (
+      {tab === 'contenido' && (
         <>
-          <div className="adm-bars" style={{ marginBottom: 20 }}>
-            <h3>Pregunta del día</h3>
-            <p style={{ fontSize: 14, color: 'var(--sand)', margin: '0 0 10px' }}>
-              Activa:{' '}
-              <strong>
-                {data.dailyQuestions.find((q) => q.active)?.question || '— ninguna —'}
-              </strong>
-            </p>
-            <input
-              type="text"
-              value={newQ}
-              placeholder="Nueva pregunta del día"
-              onChange={(e) => setNewQ(e.target.value)}
-              style={{ marginBottom: 8 }}
-            />
-            <button
-              onClick={() => {
-                if (newQ.trim().length > 3) {
-                  moderate({ op: 'set-daily-question', question: newQ.trim() })
-                  setNewQ('')
-                }
-              }}
-            >
-              Publicar pregunta
-            </button>
-          </div>
+          <section>
+            <h2>Preguntas del día</h2>
+            <AddQuestion busy={busy} onAdd={(q) => mod({ op: 'add-daily-question', question: q })} />
+            {snap.dailyQuestions.map((q) => (
+              <div className={`adm-row ${q.active ? 'active' : ''}`} key={q.id}>
+                <div className="adm-row-main">
+                  <p className="adm-body sm">{q.question}</p>
+                  <p className="adm-meta">{q.active ? 'ACTIVA' : 'inactiva'} · {fmt(q.created_at)}</p>
+                </div>
+                <div className="adm-actions">
+                  <button disabled={busy} onClick={() => mod({ op: 'toggle-daily-question', id: q.id, active: !q.active })}>
+                    {q.active ? 'Desactivar' : 'Activar'}
+                  </button>
+                  <button disabled={busy} onClick={() => { if (confirm('¿Borrar esta pregunta?')) mod({ op: 'delete-daily-question', id: q.id }) }}>Borrar</button>
+                </div>
+              </div>
+            ))}
+          </section>
 
-          <h3 style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--sand)' }}>
-            Denuncias pendientes
-          </h3>
-          <div className="adm-table-scroll" style={{ marginBottom: 24 }}>
-            {data.reports.length > 0 ? (
-              <table>
-                <thead>
-                  <tr>
-                    <th>Fecha</th>
-                    <th>Tipo</th>
-                    <th>Contenido</th>
-                    <th>Acciones</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.reports.map((r) => (
-                    <tr key={r.id}>
-                      <td className="when">{fmt(r.created_at)}</td>
-                      <td>{r.target_type === 'post' ? 'Publicación' : 'Comentario'}</td>
-                      <td className="msg">
-                        {r.content ? r.content.body : <em style={{ color: 'var(--muted)' }}>(eliminado)</em>}
-                        {r.content?.hidden && <span className="pill done"> oculto</span>}
-                      </td>
-                      <td>
-                        {r.content && (
-                          <button
-                            className="ghost"
-                            onClick={() =>
-                              moderate({
-                                op: r.target_type === 'post' ? 'hide-post' : 'hide-comment',
-                                id: r.target_id,
-                                hidden: !r.content?.hidden,
-                              })
-                            }
-                          >
-                            {r.content.hidden ? 'Mostrar' : 'Ocultar'}
-                          </button>
-                        )}{' '}
-                        <button
-                          className="ghost"
-                          onClick={() => moderate({ op: 'resolve-report', id: r.id, status: 'reviewed' })}
-                        >
-                          Revisado
-                        </button>{' '}
-                        <button
-                          className="ghost"
-                          onClick={() => moderate({ op: 'resolve-report', id: r.id, status: 'dismissed' })}
-                        >
-                          Descartar
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            ) : (
-              <p className="empty">No hay denuncias pendientes.</p>
+          <section>
+            <h2>Mensajes de contacto</h2>
+            {snap.contact.length === 0 && <p className="adm-mut sm">Sin mensajes.</p>}
+            {snap.contact.map((c) => (
+              <div className={`adm-card ${c.handled ? 'done' : ''}`} key={c.id}>
+                <p className="adm-body">{c.message}</p>
+                <p className="adm-meta">{c.name}{c.email ? ` · ${c.email}` : ''} · {fmt(c.created_at)}</p>
+                <div className="adm-actions">
+                  {c.email && <a href={`mailto:${c.email}?subject=Re: tu mensaje a Inquebrantable`}>Responder por email</a>}
+                  <button disabled={busy} onClick={() => mod({ op: 'handle-message', id: c.id, handled: !c.handled })}>
+                    {c.handled ? 'Marcar pendiente' : 'Marcar atendido'}
+                  </button>
+                </div>
+              </div>
+            ))}
+          </section>
+        </>
+      )}
+
+      {tab === 'ajustes' && (
+        <section>
+          <h2>Administradoras</h2>
+          <p className="adm-mut sm">Emails con acceso a este panel. Deben tener una cuenta de Inquebrantable con ese email.</p>
+          <AddAdmin busy={busy} onAdd={(e) => mod({ op: 'add-admin', email: e })} />
+          {snap.admins.map((e) => (
+            <div className="adm-row" key={e}>
+              <div className="adm-row-main"><p className="adm-body sm">{e}</p></div>
+              {snap.admins.length > 1 && (
+                <button className="adm-btn sm ghost" disabled={busy} onClick={() => { if (confirm(`¿Quitar acceso a ${e}?`)) mod({ op: 'remove-admin', email: e }) }}>Quitar</button>
+              )}
+            </div>
+          ))}
+        </section>
+      )}
+    </div>
+  )
+}
+
+/* ── sub-vistas ── */
+
+function Bars({ data, max }: { data: { label: string; value: number }[]; max?: number }) {
+  const m = max ?? Math.max(1, ...data.map((d) => d.value))
+  return (
+    <div className="adm-bars">
+      {data.map((d) => (
+        <div className="adm-bar" key={d.label}>
+          <span className="adm-bar-track"><span style={{ height: `${(d.value / m) * 100}%` }} /></span>
+          <span className="adm-bar-val">{d.value}</span>
+          <span className="adm-bar-lbl">{d.label}</span>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+function Resumen({ snap }: { snap: Snap }) {
+  const s = snap.stats
+  return (
+    <>
+      <section>
+        <h2>Usuarias</h2>
+        <div className="adm-kpis">
+          <div className="adm-kpi"><b>{s.totalUsers}</b><span>totales</span></div>
+          <div className="adm-kpi"><b>{s.newUsers7d}</b><span>nuevas · 7d</span></div>
+          <div className="adm-kpi"><b>{s.activeUsers7d}</b><span>activas · 7d</span></div>
+          <div className="adm-kpi"><b>{s.activeUsers30d}</b><span>activas · 30d</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Actividad · últimos 7 días</h2>
+        <div className="adm-kpis">
+          <div className="adm-kpi"><b>{s.checkinsToday}</b><span>check-ins hoy</span></div>
+          <div className="adm-kpi"><b>{s.checkins7d}</b><span>check-ins</span></div>
+          <div className="adm-kpi"><b>{s.posts7d}</b><span>publicaciones</span></div>
+          <div className="adm-kpi"><b>{s.comments7d}</b><span>comentarios</span></div>
+        </div>
+      </section>
+
+      <section>
+        <h2>Altas · últimos 14 días</h2>
+        <Bars data={snap.growth.map((g) => ({ label: new Date(g.day).getDate().toString(), value: g.count }))} />
+      </section>
+
+      {Object.keys(snap.moods7d).length > 0 && (
+        <section>
+          <h2>Cómo llegan · check-ins 7d</h2>
+          <Bars data={Object.entries(snap.moods7d).map(([k, v]) => ({ label: MOOD_LBL[k] ?? k, value: v }))} />
+        </section>
+      )}
+
+      {Object.keys(snap.needs7d).length > 0 && (
+        <section>
+          <h2>Qué necesitan · 7d</h2>
+          <Bars data={Object.entries(snap.needs7d).map(([k, v]) => ({ label: NEED_LBL[k] ?? k, value: v }))} />
+        </section>
+      )}
+
+      <section>
+        <h2>Nivel actual de las usuarias</h2>
+        <Bars data={s.levels.map((l) => ({ label: l.name.replace('El ', ''), value: l.count }))} />
+      </section>
+
+      {snap.wellbeing && snap.wellbeing.n > 0 && (
+        <section>
+          <h2>Bienestar general</h2>
+          <div className="adm-card">
+            <p className="adm-body">
+              Media al empezar: <b>{snap.wellbeing.avgFirst ?? '—'}</b> → última media: <b>{snap.wellbeing.avgLast ?? '—'}</b>
+            </p>
+            <p className="adm-meta">sobre {snap.wellbeing.n} usuaria{snap.wellbeing.n > 1 ? 's' : ''} con al menos un test</p>
+          </div>
+        </section>
+      )}
+
+      <section>
+        <h2>Círculos</h2>
+        {snap.circles.filter((c) => c.posts > 0).sort((a, b) => b.posts - a.posts).map((c) => (
+          <div className="adm-row" key={c.slug}>
+            <div className="adm-row-main"><p className="adm-body sm">{c.name}</p></div>
+            <span className="adm-mut">{c.posts} post{c.posts > 1 ? 's' : ''}</span>
+          </div>
+        ))}
+        {snap.circles.every((c) => c.posts === 0) && <p className="adm-mut sm">Todavía no hay publicaciones en ningún círculo.</p>}
+      </section>
+    </>
+  )
+}
+
+function Usuarias({ users, busy, userOp }: { users: UserRow[]; busy: boolean; userOp: (b: Record<string, unknown>) => void }) {
+  const [q, setQ] = useState('')
+  const [open, setOpen] = useState<string | null>(null)
+  const [note, setNote] = useState('')
+  const filtered = users.filter((u) =>
+    !q || (u.nick ?? '').toLowerCase().includes(q.toLowerCase()) || u.email.toLowerCase().includes(q.toLowerCase()))
+
+  return (
+    <section>
+      <input className="adm-input" placeholder="Buscar por nick o email…" value={q} onChange={(e) => setQ(e.target.value)} />
+      {filtered.map((u) => {
+        const active = open === u.id
+        const seen = new Date(u.lastSeen).getFullYear() > 1971 ? `activa ${fmtShort(u.lastSeen)}` : 'sin actividad'
+        return (
+          <div className={`adm-row col ${u.muted ? 'muted' : ''}`} key={u.id}>
+            <button className="adm-user-top" onClick={() => { setOpen(active ? null : u.id); setNote(u.note) }}>
+              <div className="adm-row-main">
+                <p className="adm-body sm">{u.nick || '(sin nick)'} {u.muted && <span className="adm-badge">silenciada</span>}</p>
+                <p className="adm-meta">{u.email} · alta {fmtShort(u.created_at)} · {seen}</p>
+              </div>
+              <span className="adm-mut sm">{LEVELS[u.level ?? -1] ? LEVELS[u.level as number].replace('El ', '') : 'sin test'} · {u.posts}p</span>
+            </button>
+            {active && (
+              <div className="adm-user-detail">
+                <div className="adm-kpis sm">
+                  <div className="adm-kpi"><b>{u.checkins}</b><span>check-ins</span></div>
+                  <div className="adm-kpi"><b>{u.posts}</b><span>posts</span></div>
+                  <div className="adm-kpi"><b>{LEVELS[u.level ?? -1] ? (u.level as number) + 1 : '—'}</b><span>nivel</span></div>
+                </div>
+                <p className="adm-mut sm">El diario es privado y no se muestra nunca.</p>
+                <label className="adm-field">
+                  <span>Nota interna</span>
+                  <textarea value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Solo la ves el equipo de admin" />
+                </label>
+                <div className="adm-actions">
+                  <button disabled={busy} onClick={() => userOp({ op: 'note', userId: u.id, note })}>Guardar nota</button>
+                  {u.muted
+                    ? <button disabled={busy} onClick={() => userOp({ op: 'mute', userId: u.id, muted: false })}>Reactivar en Refugio</button>
+                    : <button disabled={busy} onClick={() => { const r = prompt('Motivo (opcional):') ?? undefined; userOp({ op: 'mute', userId: u.id, muted: true, reason: r }) }}>Silenciar en Refugio</button>}
+                </div>
+              </div>
             )}
           </div>
+        )
+      })}
+      {filtered.length === 0 && <p className="adm-mut sm">Sin resultados.</p>}
+    </section>
+  )
+}
 
-          <h3 style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: '.06em', color: 'var(--sand)' }}>
-            Publicaciones recientes
-          </h3>
-          <div className="adm-table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Fecha</th>
-                  <th>Círculo</th>
-                  <th>Texto</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.recentPosts.map((p) => (
-                  <tr key={p.id}>
-                    <td className="when">{fmt(p.created_at)}</td>
-                    <td>{p.circle_slug}</td>
-                    <td className="msg">
-                      {p.body}
-                      {p.hidden && <span className="pill done"> oculto</span>}
-                    </td>
-                    <td>
-                      <button
-                        className="ghost"
-                        onClick={() => moderate({ op: 'hide-post', id: p.id, hidden: !p.hidden })}
-                      >
-                        {p.hidden ? 'Mostrar' : 'Ocultar'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
+function AddQuestion({ busy, onAdd }: { busy: boolean; onAdd: (q: string) => void }) {
+  const [v, setV] = useState('')
+  return (
+    <div className="adm-add">
+      <input className="adm-input" placeholder="Nueva pregunta del día…" value={v} onChange={(e) => setV(e.target.value)} />
+      <button className="adm-btn sm" disabled={busy || v.trim().length < 4} onClick={() => { onAdd(v.trim()); setV('') }}>Añadir</button>
+    </div>
+  )
+}
+
+function AddAdmin({ busy, onAdd }: { busy: boolean; onAdd: (e: string) => void }) {
+  const [v, setV] = useState('')
+  return (
+    <div className="adm-add">
+      <input className="adm-input" placeholder="email@ejemplo.com" value={v} onChange={(e) => setV(e.target.value)} />
+      <button className="adm-btn sm" disabled={busy || !v.includes('@')} onClick={() => { onAdd(v.trim()); setV('') }}>Añadir</button>
     </div>
   )
 }

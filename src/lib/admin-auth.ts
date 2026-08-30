@@ -1,30 +1,21 @@
-import { createHmac } from 'node:crypto'
-import { cookies } from 'next/headers'
+import { createServerSupabase } from '@/lib/supabase/server'
+import { supabaseConfigured } from '@/lib/supabase/env'
 
-const COOKIE = 'inq_admin'
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD?.trim() || ''
-
-/** Sin ADMIN_PASSWORD => el panel está abierto (modo temporal, con aviso). */
-export function adminIsOpen(): boolean {
-  return ADMIN_PASSWORD.length < 6
+/**
+ * Acceso admin = usuaria con sesión de Supabase cuyo email está en
+ * `inq_admin_allowlist`. La comprobación real la hace la función
+ * `inq_is_admin()` en Postgres (SECURITY DEFINER). Aquí solo la invocamos.
+ */
+export async function checkAdmin(): Promise<{
+  ok: boolean
+  reason: 'no-config' | 'no-session' | 'not-admin' | null
+  supabase: ReturnType<typeof createServerSupabase> | null
+}> {
+  if (!supabaseConfigured()) return { ok: false, reason: 'no-config', supabase: null }
+  const supabase = createServerSupabase()
+  const { data: auth } = await supabase.auth.getUser()
+  if (!auth.user) return { ok: false, reason: 'no-session', supabase }
+  const { data, error } = await supabase.rpc('inq_is_admin')
+  if (error || data !== true) return { ok: false, reason: 'not-admin', supabase }
+  return { ok: true, reason: null, supabase }
 }
-
-export function adminConfigured(): boolean {
-  return ADMIN_PASSWORD.length >= 6
-}
-
-export function adminToken(): string {
-  return createHmac('sha256', ADMIN_PASSWORD || 'inq-open').update('inq-admin-v1').digest('hex')
-}
-
-export function passwordMatches(password: string): boolean {
-  return adminConfigured() && password === ADMIN_PASSWORD
-}
-
-export function isAdmin(): boolean {
-  if (adminIsOpen()) return true
-  const c = cookies().get(COOKIE)?.value
-  return Boolean(c) && c === adminToken()
-}
-
-export const ADMIN_COOKIE = COOKIE
