@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { PlatHeader } from '../_ui'
 
 export const metadata: Metadata = {
   title: 'Recursos de ayuda · Inquebrantable',
@@ -88,9 +89,8 @@ function Card({
 export default function RecursosPage() {
   return (
     <>
-      <p className="eyebrow">Recursos de ayuda · España</p>
-      <h1>No tienes que poder sola con todo</h1>
-      <p className="lede">
+      <PlatHeader title="Recursos de ayuda" sub="No tienes que poder sola con todo." />
+      <p className="c-sub" style={{ margin: '2px 0 8px' }}>
         Inquebrantable acompaña, pero no es un servicio de emergencia ni sustituye a
         profesionales. Si lo necesitas, estas líneas sí lo son.
       </p>

@@ -126,10 +126,10 @@ export default async function HomePage() {
       <footer className="home-foot">
         <p className="brand">INQUEBRANTABLE</p>
         <div className="links">
+          <Link href="/historia">Historia</Link>
           <Link href="/refugio">Refugio</Link>
           <Link href="/herramientas">Herramientas</Link>
           <Link href="/recursos">Recursos</Link>
-          <Link href="/clasica">Ver todo</Link>
         </div>
         <p className="legal">
           Inquebrantable acompaña, pero no sustituye a un profesional de la salud mental

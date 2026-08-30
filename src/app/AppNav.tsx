@@ -46,7 +46,7 @@ const AREAS = [
 
 export default function AppNav() {
   const path = usePathname()
-  if (path.startsWith('/clasica') || path.startsWith('/admin')) return null
+  if (path.startsWith('/admin')) return null
 
   return (
     <nav className="appnav" aria-label="Navegación principal">

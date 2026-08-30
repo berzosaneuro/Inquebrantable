@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { LEVELS } from '@/lib/evaluacion'
+import { PlatHeader } from '../_ui'
 
 type Data = {
   activeDays: number
@@ -34,15 +35,10 @@ export default function ProgresoPage() {
   if (needAuth) {
     return (
       <>
-        <p className="eyebrow">Mi progreso</p>
-        <h1>Tu camino, guardado</h1>
-        <p className="lede">Crea una cuenta y verás aquí tu evolución día a día.</p>
-        <Link
-          href="/entrar"
-          className="plat-btn"
-          style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
-        >
-          Crear cuenta / entrar
+        <PlatHeader title="Mi progreso" sub="Tu camino, guardado." />
+        <p className="c-sub" style={{ margin: '2px 0 16px' }}>Crea una cuenta y verás aquí tu evolución día a día.</p>
+        <Link href="/entrar" className="btn block" style={{ textDecoration: 'none' }}>
+          Crear cuenta o entrar
         </Link>
       </>
     )
@@ -55,8 +51,10 @@ export default function ProgresoPage() {
 
   return (
     <>
-      <p className="eyebrow">Mi progreso</p>
-      <h1>{data.returned ? 'Has vuelto. Continuemos desde aquí.' : 'Tu camino'}</h1>
+      <PlatHeader
+        title="Mi progreso"
+        sub={data.returned ? 'Has vuelto. Continuemos desde aquí.' : 'Racha y avance, sin prisa.'}
+      />
 
       <div className="plat-card">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 12 }}>
@@ -137,7 +135,7 @@ export default function ProgresoPage() {
 function Stat({ n, l }: { n: number; l: string }) {
   return (
     <div style={{ textAlign: 'center' }}>
-      <div style={{ fontFamily: 'Georgia, serif', fontSize: 30, color: 'var(--rose)' }}>{n}</div>
+      <div style={{ fontFamily: 'var(--serif)', fontSize: 34, color: 'var(--rose-deep)' }}>{n}</div>
       <div style={{ fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '.06em' }}>
         {l}
       </div>

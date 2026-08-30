@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from '@/lib/useSession'
+import { PlatHeader } from '../_ui'
 
 type Answer = { id: number; author: string; body: string; created_at: string; isMine: boolean }
 
@@ -51,17 +52,14 @@ export default function PreguntaPage() {
   if (!question) {
     return (
       <>
-        <p className="eyebrow">Pregunta del día</p>
-        <h1>Hoy no hay pregunta</h1>
-        <p className="lede">Vuelve mañana.</p>
+        <PlatHeader title="Pregunta del día" sub="Hoy no hay pregunta. Vuelve mañana." />
       </>
     )
   }
 
   return (
     <>
-      <p className="eyebrow">Pregunta del día</p>
-      <h1>{question.question}</h1>
+      <PlatHeader title="Pregunta del día" sub={question.question} />
 
       {!loading && !user ? (
         <>

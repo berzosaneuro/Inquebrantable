@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from '@/lib/useSession'
+import { PlatHeader } from '../_ui'
 
 const MOODS = [
   { id: 'mal', em: '🌧️', label: 'Mal' },
@@ -80,12 +81,11 @@ export default function HoyPage() {
 
   return (
     <>
-      <p className="eyebrow">Hoy</p>
-      <h1>¿Cómo estás hoy?</h1>
+      <PlatHeader title="Hoy" sub="¿Cómo estás hoy? Escúchate." />
       {!user && !loading && (
-        <p className="lede">
+        <p className="c-sub" style={{ margin: '2px 0 14px' }}>
           Puedes usar esto sin cuenta.{' '}
-          <Link href="/entrar" style={{ color: 'var(--rose)' }}>
+          <Link href="/entrar" style={{ color: 'var(--rose-deep)' }}>
             Crea una cuenta
           </Link>{' '}
           para guardar tu evolución.

@@ -8,6 +8,7 @@ import {
   PRIORITY_PROGRAM,
   type DimId,
 } from '@/lib/evaluacion'
+import { PlatHeader } from '../_ui'
 
 type Entry = {
   score: number
@@ -44,13 +45,12 @@ export default function MapaPage() {
   if (!latest || !latest.dimensions) {
     return (
       <>
-        <p className="eyebrow">Mapa emocional</p>
-        <h1>Aún no tienes un mapa</h1>
-        <p className="lede">
+        <PlatHeader title="Mapa emocional" sub="Aún no tienes un mapa." />
+        <p className="c-sub" style={{ margin: '2px 0 16px' }}>
           Haz el test y verás aquí cómo estás en cada área, qué necesita más cuidado y,
           con el tiempo, tu evolución.
         </p>
-        <Link href="/evaluacion" className="plat-btn" style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}>
+        <Link href="/evaluacion" className="btn block" style={{ textDecoration: 'none' }}>
           Hacer el test
         </Link>
       </>
@@ -65,8 +65,7 @@ export default function MapaPage() {
 
   return (
     <>
-      <p className="eyebrow">Mapa emocional · {fmt(latest.created_at)}</p>
-      <h1>Cómo estás ahora</h1>
+      <PlatHeader title="Mapa emocional" sub={`Cómo estás ahora · ${fmt(latest.created_at)}`} />
 
       <div className="plat-level">
         <div className="lname">{lvl.name}</div>

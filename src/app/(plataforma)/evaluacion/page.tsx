@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { QUESTIONS, LEVELS, DIMENSIONS, PRIORITY_PROGRAM, type DimId } from '@/lib/evaluacion'
 import { useSession } from '@/lib/useSession'
+import { PlatHeader } from '../_ui'
 
 type Result = {
   dimensions: Record<DimId, number>
@@ -69,8 +70,7 @@ export default function EvaluacionPage() {
     const prog = PRIORITY_PROGRAM[result.priority]
     return (
       <>
-        <p className="eyebrow">Tu resultado</p>
-        <h1>Este es tu punto de partida</h1>
+        <PlatHeader title="Tu resultado" sub="Este es tu punto de partida." />
         <div className="plat-level">
           <div className="lname">{lvl.name}</div>
           <div className="ldesc">{lvl.desc}</div>
@@ -117,13 +117,10 @@ export default function EvaluacionPage() {
 
   return (
     <>
-      <p className="eyebrow">Test de niveles</p>
-      <h1>Conócete un poco mejor</h1>
-      {!user && (
-        <p className="lede">
-          Responde con honestidad, sin juicios. Puedes hacerlo sin cuenta.
-        </p>
-      )}
+      <PlatHeader
+        title="Test de niveles"
+        sub={user ? 'Conócete un poco mejor.' : 'Responde con honestidad. Puedes hacerlo sin cuenta.'}
+      />
       <div className="plat-progress">
         <span style={{ width: `${((i + 1) / total) * 100}%` }} />
       </div>

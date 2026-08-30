@@ -493,6 +493,51 @@
 }
 
 /* ─────────────────────────────────────────────
+   PREMIUM — planes y precios
+────────────────────────────────────────────── */
+.premium-list { list-style: none; margin: 10px 0 0; padding: 0; }
+.premium-list li {
+  display: flex; gap: 10px; align-items: flex-start;
+  font-size: 14px; color: var(--ink-soft); line-height: 1.5; margin: 9px 0;
+}
+.premium-list li span {
+  flex: none; color: var(--rose-deep); font-weight: 700;
+}
+.premium-planes { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 14px 0 4px; }
+.premium-planes .plan {
+  position: relative; text-align: center; padding: 20px 12px;
+  background: var(--paper); border: 1px solid var(--line); border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+.premium-planes .plan.destacado { border-color: var(--rose); background: var(--rose-tint); }
+.plan-precio { font-family: var(--serif); font-size: 1.8rem; color: var(--ink); font-weight: 500; }
+.plan-periodo { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mute); margin-top: 2px; }
+.plan-badge {
+  position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+  background: var(--rose); color: var(--navy-deep); font-size: 9.5px; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px;
+  white-space: nowrap;
+}
+
+/* ─────────────────────────────────────────────
+   PERFIL (Yo)
+────────────────────────────────────────────── */
+.perfil-card { text-align: center; }
+.perfil-avatar {
+  display: inline-grid; place-items: center;
+  width: 64px; height: 64px; border-radius: 50%;
+  background: linear-gradient(140deg, var(--rose-soft), var(--paper-3));
+  color: var(--navy); font-family: var(--serif); font-size: 1.6rem; font-weight: 500;
+}
+.perfil-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+  margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line);
+}
+.perfil-stats > div { display: flex; flex-direction: column; gap: 3px; }
+.perfil-stats b { font-family: var(--serif); font-size: 1.4rem; color: var(--rose-deep); font-weight: 500; }
+.perfil-stats span { font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-mute); }
+
+/* ─────────────────────────────────────────────
    PROGRAMAS
 ────────────────────────────────────────────── */
 .prog-card {

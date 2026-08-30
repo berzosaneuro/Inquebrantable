@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { PlatHeader } from '../_ui'
 
 type Tool = { id: string; title: string; when: string; steps: string[]; action?: { href: string; label: string } }
 
@@ -122,9 +123,7 @@ export default function HerramientasPage() {
 
   return (
     <>
-      <p className="eyebrow">Herramientas</p>
-      <h1>Algo que puedes hacer ahora.</h1>
-      <p className="lede">Elige por lo que necesitas. Cada herramienta se hace en pocos minutos.</p>
+      <PlatHeader title="Herramientas" sub="Algo que puedes hacer ahora, en pocos minutos." />
 
       {GROUPS.map((g) => (
         <section key={g.id} id={g.id} style={{ scrollMarginTop: 20 }}>

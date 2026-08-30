@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { PlatHeader } from '../_ui'
 
 type Circle = { slug: string; name: string; description: string | null }
 
@@ -17,13 +18,12 @@ export default function CirculosPage() {
 
   return (
     <>
-      <p className="eyebrow">Círculos</p>
-      <h1>Comunidades por tema</h1>
-      <p className="lede">
-        Cada círculo es un rincón del Refugio para hablar de algo concreto con otras
-        mujeres que están en lo mismo.
+      <PlatHeader title="Círculos" sub="Comunidades por tema dentro del Refugio." />
+      <p className="c-sub" style={{ margin: '2px 0 14px' }}>
+        Cada círculo es un rincón para hablar de algo concreto con otras mujeres que
+        están en lo mismo.
       </p>
-      <div className="plat-reco">
+      <div className="rows">
         {circles.map((c) => (
           <Link key={c.slug} href={`/refugio?circle=${c.slug}`}>
             <span>

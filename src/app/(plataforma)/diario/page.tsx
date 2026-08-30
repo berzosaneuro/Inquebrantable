@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSession } from '@/lib/useSession'
+import { PlatHeader } from '../_ui'
 
 type Entry = {
   id: number
@@ -72,18 +73,13 @@ export default function DiarioPage() {
   if (!loading && !user) {
     return (
       <>
-        <p className="eyebrow">Diario</p>
-        <h1>Tu diario es privado</h1>
-        <p className="lede">
+        <PlatHeader title="Diario" sub="Privado y solo tuyo." />
+        <p className="c-sub" style={{ margin: '2px 0 16px' }}>
           Nadie más puede leerlo, nunca. Necesitas una cuenta para guardarlo de forma
           segura.
         </p>
-        <Link
-          href="/entrar"
-          className="plat-btn"
-          style={{ display: 'block', textAlign: 'center', textDecoration: 'none' }}
-        >
-          Crear cuenta / entrar
+        <Link href="/entrar" className="btn block" style={{ textDecoration: 'none' }}>
+          Crear cuenta o entrar
         </Link>
       </>
     )
@@ -91,42 +87,20 @@ export default function DiarioPage() {
 
   return (
     <>
-      <p className="eyebrow">Diario</p>
-      <h1>Escribe lo que llevas dentro</h1>
-      <p className="lede">Privado y solo tuyo. Responde solo a lo que te apetezca.</p>
+      <PlatHeader title="Diario" sub="Escribe lo que llevas dentro. Solo tú lo ves." />
 
-      <div className="plat-card">
+      <div className="card">
         {FIELDS.map((f) => (
-          <div key={f.k} style={{ marginBottom: 14 }}>
-            <label
-              style={{
-                display: 'block',
-                fontSize: 13,
-                color: 'var(--sand)',
-                marginBottom: 6,
-              }}
-            >
-              {f.label}
-            </label>
+          <label className="field" key={f.k}>
+            <span>{f.label}</span>
             <textarea
               value={form[f.k] || ''}
               onChange={(e) => setForm({ ...form, [f.k]: e.target.value })}
               rows={2}
-              style={{
-                width: '100%',
-                background: 'var(--card2)',
-                border: '1px solid var(--border)',
-                borderRadius: 12,
-                color: 'var(--ink)',
-                padding: '10px 12px',
-                fontFamily: 'inherit',
-                fontSize: 15,
-                resize: 'vertical',
-              }}
             />
-          </div>
+          </label>
         ))}
-        <button className="plat-btn" onClick={save} disabled={saving}>
+        <button className="btn block" onClick={save} disabled={saving}>
           {saving ? 'Guardando…' : 'Guardar entrada'}
         </button>
         {msg && <p className="plat-msg ok">{msg}</p>}
